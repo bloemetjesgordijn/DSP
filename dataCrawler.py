@@ -7,12 +7,11 @@ from bs4 import BeautifulSoup
 import pandas as pd
 
 #### CONFIG ####
-searchQuery = 'mensenhandel'
+searchQuery = 'drugs'
 baseUrl = 'https://uitspraken.rechtspraak.nl/api/zoek' 
-LiDoBaseUrl = 'https://linkeddata.overheid.nl/front/portal/document-viewer?ext-id=' ## Not used anymore but can't hurt to keep. LiDo is practically the same site as the uitsprakenBaseUrl
 uitsprakenBaseUrl = 'https://uitspraken.rechtspraak.nl/inziendocument?id='
-case_count = 5  ## Amount of cases to retrieve. If you want max, just do an insanely high number, it stops when it fetched all cases. Backend does not accept values like 'max'.
-save_text_location = os.getcwd() + '/data/' # You have to have created this folder first. 
+case_count = 100000 ## Amount of cases to retrieve. If you want max, just do an insanely high number, it stops when it fetched all cases. Backend does not accept values like 'max'.
+save_text_location = os.getcwd() + 'data/data3/' # You have to have created this folder first. 
 ################
 
 cases_df = pd.DataFrame()
@@ -29,7 +28,7 @@ def getCaseText(caseId):
         uitspraak_html = soup_content.find('div', {'class': 'uitspraak'})
     elif soup_content.find('div', {'class': 'conclusie'}) is not None:
         uitspraak_html =  soup_content.find('div', {'class': 'conclusie'})
-    uitspraak = uitspraak_html.get_text().replace("\n", '')
+    uitspraak = uitspraak_html.get_text()
     uitspraak = uitspraak.replace(',', '')
     return uitspraak
 
@@ -44,7 +43,7 @@ def parseCaseInfo(results):
         case['Case ID'] = parsedId
         cases_df = cases_df.append(case, ignore_index = True)
         print('Processed case', case['Case ID'])
-    cases_df.to_csv('cases.csv', index=False)
+    cases_df.to_csv('cases3.csv', index=False)
 
 ### Method to retrieve raw data from the backend. Backend url is at the top in the Config. files = complete request payload the backend expects to receive. 
 def queryUitspraak():
