@@ -1,4 +1,5 @@
 
 data/
 Figures/
+tf_idf_output/
 cases.csv
