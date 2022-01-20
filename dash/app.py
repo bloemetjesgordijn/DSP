@@ -13,19 +13,17 @@ import plotly.io as pio
 from keywords import term_dict
 from sewage import amphetamine_series, methamphetamine_series, MDMA_series, cocaine_series
 
-pio.templates.default = "none"
+# pio.templates.default = "none"
+
 
 app = dash.Dash(__name__)
-
 
 amphetamine_df = pd.DataFrame({'count': amphetamine_series.values, 'type': 'Amphetamine in sewage'}, index = amphetamine_series.index)
 methamphetamine_df = pd.DataFrame({'count': methamphetamine_series.values, 'type': 'Methamphetamine in sewage'}, index = methamphetamine_series.index)
 MDMA_df = pd.DataFrame({'count': MDMA_series.values, 'type': 'MDMA in sewage'}, index = MDMA_series.index)
 cocaine_df = pd.DataFrame({'count': cocaine_series.values, 'type': 'Cocaine in sewage'}, index = cocaine_series.index)
 
-# print(type(amphetamine_df))
-# print(amphetamine_df)
-
+extra_terms = []
 local_term_dict = term_dict.copy()
 
 options = []
@@ -39,7 +37,6 @@ def get_options():
             options.append(curr)
     return options
 get_options()
-
 
 app.layout = html.Div(children=[
     html.H1(children='Data Systems Project group F6'),
@@ -80,20 +77,34 @@ app.layout = html.Div(children=[
         {'label': 'Cases', 'value': 'cases'}
     ],
     value='mentions'),
+    html.Div(children='''
+        Court mentions
+    '''),
     dcc.Checklist(
         id="line-selector",
         options=get_options(),
         value=[]
     ),
-    dcc.Input(
-        id="input1", type="text", placeholder="", debounce=True),
-    html.Div(id="output"),
+    html.Div(children='''
+        Sewage data
+    '''),
     dcc.Checklist(
         id="sewage-selector",
         options=[{'label': 'Amphetamines', 'value': 'amphetamines'},
         {'label': 'Methamphetamines', 'value': 'methamphetamines'},
         {'label': 'MDMA', 'value': 'MDMA'},
         {'label': 'Cocaine', 'value': 'cocaine'}],
+        value=[]
+    ),
+    html.Div(children='''
+        Extra terms:
+    '''),
+    dcc.Input(
+        id="input", type="text", placeholder="", debounce=True),
+    html.Div(id="output"),
+    dcc.Checklist(
+        id="extra-terms-selector",
+        options=[],
         value=[]
     ),
 ])
@@ -103,8 +114,9 @@ app.layout = html.Div(children=[
     Input('rolling-mean-slider', 'value'),
     Input('line-selector', 'value'),
     Input('sewage-selector', 'value'),
-    Input('mentions_case_selector', 'value'))
-def update_figure(rolling_mean_value, line_selector, sewage_selector, mentions_case_selector):
+    Input('mentions_case_selector', 'value'),
+    Input('extra-terms-selector', 'value'))
+def update_figure(rolling_mean_value, line_selector, sewage_selector, mentions_case_selector, extra_terms):
     df = pd.DataFrame(columns = ['count', 'type'])
     for var in line_selector:
         if mentions_case_selector == 'mentions':
@@ -129,8 +141,24 @@ def update_figure(rolling_mean_value, line_selector, sewage_selector, mentions_c
     if 'cocaine' in sewage_selector:
         df = df.append(cocaine_df)
     
-    
-    
+    for var in extra_terms:
+        print(var)
+        globals()[var + "_mentions_results"] = []
+        globals()[var + "_cases_results"] = []
+        if mentions_case_selector == 'mentions':
+            if not (len(globals()[var + "_mentions_results"]) > 0):
+                globals()[var + "_mentions_results"] = plot_lines.get_line([var], 'mentions')
+            globals()["monthly_" + var + "_mentions_results"] = globals()[var + "_mentions_results"].rolling(window=rolling_mean_value).mean()
+            globals()["monthly_" + var + "_mentions_results"]['type'] = var
+            df = df.append(globals()["monthly_" + var + "_mentions_results"])
+        elif mentions_case_selector == 'cases':
+            if not (len(globals()[var + "_cases_results"]) > 0):
+                globals()[var + "_cases_results"] = plot_lines.get_line([var], 'cases')
+            globals()["monthly_" + var + "_cases_results"] = globals()[var + "_cases_results"].rolling(window=rolling_mean_value).mean()
+            globals()["monthly_" + var + "_cases_results"]['type'] = var
+            df = df.append(globals()["monthly_" + var + "_cases_results"])
+
+
     df['date'] = df.index
     fig = px.line(df, x="date", y="count", title='Monthly mentions', color='type')
     fig.update_layout(transition_duration=500)
@@ -142,16 +170,18 @@ def update_figure(rolling_mean_value, line_selector, sewage_selector, mentions_c
 #     time.sleep(1)
 #     return value
 
-# @app.callback(
-#     Output("output", "children"),
-#     Input("input1", "value"),
-# )
-# def update_output(input1):
-#     print(local_term_dict)
-#     print(len(local_term_dict))
-#     print(type(local_term_dict))
-#     local_term_dict[input1] = [input1]
-#     return u'Input 1 {}'.format(input1)
+@app.callback(
+    Output("extra-terms-selector", "options"),
+    Input("input", "value"),
+)
+def update_output(input):
+    if input is not None:
+        extra_terms.append(input)
+    new_list = []
+    for term in extra_terms:
+        curr = {'label': term, 'value': term}
+        new_list.append(curr)
+    return new_list
 
 
 if __name__ == '__main__':

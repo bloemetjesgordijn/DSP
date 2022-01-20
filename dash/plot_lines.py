@@ -9,7 +9,7 @@ merged_df = get_data.full_data()
 def count_mentions(word_arr):
     dates = []
     counts = []
-    for i in range(len(merged_df[:5000])):
+    for i in range(len(merged_df[:5100])):
         current = merged_df.iloc[i]
         current_date = current["Uitspraakdatum"]
         
