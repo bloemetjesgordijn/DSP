@@ -25,6 +25,8 @@ cocaine_df = pd.DataFrame({'count': cocaine_series.values, 'type': 'Cocaine in s
 
 extra_terms = []
 local_term_dict = term_dict.copy()
+relevant_cases = []
+
 
 options = []
 def get_options():
@@ -107,6 +109,19 @@ app.layout = html.Div(children=[
         options=[],
         value=[]
     ),
+    html.Button('Delete extra terms', id='delete-extra-items', n_clicks_timestamp = 0),
+    html.Div(children='''
+        Find cases by mentions:
+    '''),
+    dcc.Input(
+        id="specific-case-input", type="text", placeholder="", debounce=True),
+        dcc.Input(
+        id="specific-case-amount-input", type="number", placeholder="20", debounce=True),
+    html.Div(
+        children=[
+            html.Ul(id='specific-case-output', children=[html.Li(i) for i in relevant_cases])
+        ],
+    )
 ])
 
 @app.callback(
@@ -142,6 +157,7 @@ def update_figure(rolling_mean_value, line_selector, sewage_selector, mentions_c
         df = df.append(cocaine_df)
     
     for var in extra_terms:
+        print(extra_terms)
         print(var)
         globals()[var + "_mentions_results"] = []
         globals()[var + "_cases_results"] = []
@@ -173,16 +189,55 @@ def update_figure(rolling_mean_value, line_selector, sewage_selector, mentions_c
 @app.callback(
     Output("extra-terms-selector", "options"),
     Input("input", "value"),
+    Input("delete-extra-items", "n_clicks_timestamp")
 )
-def update_output(input):
+def update_output(input, n_clicks_timestamp):
+    delete_terms_button_timestamp = time.time()
+    curr_time = str(int(time.time()))
+    click_time = str(n_clicks_timestamp)[:-3]
+    new_list = []
+
     if input is not None:
         extra_terms.append(input)
-    new_list = []
     for term in extra_terms:
         curr = {'label': term, 'value': term}
         new_list.append(curr)
+    if curr_time == click_time:
+        print("Delete list")
+        new_list = []
+       
+    # delete_terms_button_timestamp = n_clicks_timestamp
     return new_list
 
+@app.callback(
+    Output("specific-case-output", "children"),
+    Input("specific-case-input", "value"),
+     Input("specific-case-amount-input", "value")
+)
+def update_case_check(input, amount):
+    cases = input
+    complete = []
+    print(input , amount)
+    if len(input) > 0:
+        result = plot_lines.get_case_that_exceed_count([input], amount)
+        counts = result[0]
+        cases = result[1]
+        dates = result[2]
+        for i in range(len(counts)):
+            link = html.A(cases[i])
+            link.href = 'https://uitspraken.rechtspraak.nl/inziendocument?id=' + cases[i]
+            link.target = '_blank'
+            curr = html.Div([
+                html.P(str(counts[i]) + " mentions in " + dates[i]),
+                link
+            ])
+            curr_el = html.Li(curr)
+            complete.append(curr_el)
+        if len(complete) > 0:
+            relevant_cases = complete
+        else:
+            relevant_cases = []
+    return relevant_cases
 
 if __name__ == '__main__':
     app.run_server(debug=True)
