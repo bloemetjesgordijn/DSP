@@ -1,0 +1,23 @@
+.tableauPlaceholder,
+.tableauViz {
+    width: 100%;
+    height: 70vh;
+}
+
+.tableauViz {
+    display: none;
+}
+
+.nav-link {
+    color: var(--bs-gray-900) !important;
+}
+
+.nav-link:focus,
+.nav-link:hover {
+    color: var(--bs-secondary);
+}
+
+.bg-soft {
+    background-color: #F3F9FF;
+    width: 100%;
+}

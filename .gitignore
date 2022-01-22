@@ -1,5 +1,8 @@
 
 data/
+data3/
 Figures/
 tf_idf_output/
 cases.csv
+*.pyc
+.DS_Store
