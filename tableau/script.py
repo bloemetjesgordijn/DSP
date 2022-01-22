@@ -80,10 +80,7 @@ class DataManager():
 
     def process_search_words(self):
         data = pd.DataFrame()
-        i = 1
         for key, search_words in DRUGS_AND_PRECURSORS.items():
-            # if i > 3:
-                # continue
             print(key)
             print(search_words)
             df = self.count_mentions(search_words).rename(columns={"count": f"{key}_count"})
@@ -91,17 +88,15 @@ class DataManager():
                 data = pd.merge(data, df, on=['date', 'Case ID'], how='left')
             except:
                 data = df
-            i += 1
         data.sort_values(by='date', ascending=False, inplace=True)
         self.drug_word_count_df = data
-        # return data
     
     def save_datafiles(self):
         path = 'processed_data'
-        # self.drug_word_count_df.to_csv(f"{path}/drug_word_count.csv", sep=';', index=False)
+        self.drug_word_count_df.to_csv(f"{path}/drug_word_count.csv", sep=';', index=False)
         self.sewerdata.to_csv(f"{path}/sewerdata.csv", sep=';', index=False)
-        # self.courtdata.drop(columns=['Case Text'], inplace=True)
-        # self.courtdata.to_csv(f"{path}/courtdata.csv", sep=';', index=False)
+        self.courtdata.drop(columns=['Case Text'], inplace=True)
+        self.courtdata.to_csv(f"{path}/courtdata.csv", sep=';', index=False)
 
 
 
