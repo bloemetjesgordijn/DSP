@@ -19,7 +19,7 @@ class DataManager():
             usecols = [
                 'GerechtelijkProductType', 'Case ID', 
                 'Proceduresoorten', 'Publicatiedatum', 
-                'Rechtsgebieden', 'Tekstfragment', 
+                'Rechtsgebieden', 
                 'Titel', 'Uitspraakdatum', 'UitspraakdatumType'
             ]
         )
@@ -93,8 +93,8 @@ class DataManager():
     
     def save_datafiles(self):
         path = 'processed_data'
-        self.drug_word_count_df.to_csv(f"{path}/drug_word_count.csv", sep=';', index=False)
-        self.sewerdata.to_csv(f"{path}/sewerdata.csv", sep=';', index=False)
+        # self.drug_word_count_df.to_csv(f"{path}/drug_word_count.csv", sep=';', index=False)
+        # self.sewerdata.to_csv(f"{path}/sewerdata.csv", sep=';', index=False)
         self.courtdata.drop(columns=['Case Text'], inplace=True)
         self.courtdata.to_csv(f"{path}/courtdata.csv", sep=';', index=False)
 
@@ -102,7 +102,7 @@ class DataManager():
 
 if __name__ == '__main__':
     dm = DataManager()
-    dm.collect_sewerdata()
-    # dm.collect_courtdata()
+    # dm.collect_sewerdata()
+    dm.collect_courtdata()
     # dm.process_search_words()
     dm.save_datafiles()
