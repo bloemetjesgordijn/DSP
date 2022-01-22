@@ -48,7 +48,22 @@ def parseCaseInfo(results):
 ### Method to retrieve raw data from the backend. Backend url is at the top in the Config. files = complete request payload the backend expects to receive. 
 def queryUitspraak():
     print("Querying")
-    files = {"StartRow":0,"PageSize":case_count,"ShouldReturnHighlights":'true',"ShouldCountFacets":'true',"SortOrder":"Relevance","SearchTerms":[{"Term":searchQuery,"Field":"AlleVelden"}],"Contentsoorten":[],"Rechtsgebieden":[],"Instanties":[],"DatumPublicatie":[],"DatumUitspraak":[],"Advanced":{"PublicatieStatus":"AlleenGepubliceerd"},"CorrelationId":"9abc658b0ce64f8786992af6965aabc4","Proceduresoorten":[]}
+    files = {
+        "StartRow": 0,
+        "PageSize": case_count,
+        "ShouldReturnHighlights":'true',
+        "ShouldCountFacets":'true',
+        "SortOrder":"Relevance",
+        "SearchTerms":[{"Term":searchQuery,"Field":"AlleVelden"}],
+        "Contentsoorten":[],
+        "Rechtsgebieden":[],
+        "Instanties":[],
+        "DatumPublicatie":[],
+        "DatumUitspraak":[],
+        "Advanced":{"PublicatieStatus":"AlleenGepubliceerd"},
+        "CorrelationId":"9abc658b0ce64f8786992af6965aabc4",
+        "Proceduresoorten":[]
+    }
     try:
         response = requests.post(baseUrl, json=files)
         responseJSON = json.loads(response.text)
