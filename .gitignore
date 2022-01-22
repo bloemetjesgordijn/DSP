@@ -6,3 +6,4 @@ tf_idf_output/
 cases.csv
 *.pyc
 .DS_Store
+processed_data/
