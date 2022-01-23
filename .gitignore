@@ -7,3 +7,4 @@ cases.csv
 *.pyc
 .DS_Store
 processed_data/
+tableau/database/loader.py
