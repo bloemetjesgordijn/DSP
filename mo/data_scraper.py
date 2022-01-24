@@ -7,7 +7,7 @@ import pandas as pd
 from sqlalchemy import create_engine
 from dotenv import load_dotenv
 
-from .constants import *
+from constants import *
 load_dotenv()
 
 class DataScraper():
@@ -16,9 +16,6 @@ class DataScraper():
         self.baseUrl = 'https://uitspraken.rechtspraak.nl/api/zoek' 
         self.uitsprakenBaseUrl = 'https://uitspraken.rechtspraak.nl/inziendocument?id='
         self.case_count = 100000 
-        # self.save_text_location = os.getcwd() + '/data/courtcases/' 
-        # self.cases_df = pd.read_csv("data/cases3.csv", sep=',')
-        # self.cases_already_scraped = os.listdir(self.save_text_location)
         self.host = os.getenv('HOST')
         self.user = os.getenv('DEFAULT_USER')
         self.pw = os.getenv('PASSWORD')
@@ -26,9 +23,10 @@ class DataScraper():
         self.db = os.getenv('DATABASE')
         self.sslmode = os.getenv("SSLMODE")
         self.connection_str = f"postgresql://{self.user}:{self.pw}@{self.host}:{self.port}/{self.db}?sslmode={self.sslmode}"
-        self.case_verdict_df = pd.DataFrame(columns=['date', 'caseid', 'casetext'])
+
         # Tekstfragmenten ommitten for now
         self.cases_df = pd.DataFrame(columns=['Titel', 'Uitspraakdatum', 'UitspraakdatumType', 'GerechtelijkProductType', 'Proceduresoorten', 'Rechtsgebieden', 'caseid'])
+        self.case_verdict_df = pd.DataFrame(columns=['date', 'caseid', 'casetext'])
 
     def set_existing_files(self):
         engine = create_engine(self.connection_str)
@@ -132,7 +130,7 @@ class DataScraper():
     def push_counts_to_db_new(self):
         engine = create_engine(self.connection_str)
         conn = engine.connect()
-        self.drug_word_count_df.to_sql('court_verdicts', con=conn, schema='public', if_exists='append', index=False, chunksize=500)
+        self.drug_word_count_df.to_sql('drug_prevalence_count', con=conn, schema='public', if_exists='append', index=False, chunksize=500)
         conn.close()
     
     def push_verdicts_to_db(self):
@@ -188,17 +186,18 @@ class DataScraper():
 if __name__ == '__main__':
     scraper = DataScraper()
     scraper.set_existing_files()
-    results = scraper.query_uitspraken()
+    # results = scraper.query_uitspraken()
+    print(type(scraper.cases_already_scraped))
 
-    results = results[:3]
-    for case in results:
-        parsed_id = case['TitelEmphasis'].replace(':', '-') 
-        print(parsed_id)
-        if parsed_id in scraper.cases_already_scraped:
-            print('nah')
-            continue
-        else:
-            print('yeh')
-            scraper.handle_case(case, parsed_id)
+    # results = results[:3]
+    # for case in results:
+    #     parsed_id = case['TitelEmphasis'].replace(':', '-') 
+    #     print(parsed_id)
+    #     if parsed_id in scraper.cases_already_scraped:
+    #         print('nah')
+    #         continue
+    #     else:
+    #         print('yeh')
+    #         scraper.handle_case(case, parsed_id)
 
-    print(scraper.case_verdict_df.head())
+    # print(scraper.case_verdict_df.head())
