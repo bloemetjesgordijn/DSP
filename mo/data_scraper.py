@@ -7,7 +7,7 @@ import pandas as pd
 from sqlalchemy import create_engine
 from dotenv import load_dotenv
 
-from constants import *
+from .constants import *
 load_dotenv()
 
 class DataScraper():
@@ -83,8 +83,7 @@ class DataScraper():
         }
         data_row_2 = {key: val for key, val in case.items() if key in self.cases_df.columns}
         data_row_2['caseid'] = parsed_id
-
-        self.case_verdict_df.append(data_row_1, ignore_index=True)
+        self.case_verdict_df = self.case_verdict_df.append(data_row_1, ignore_index=True)
         self.cases_df = self.cases_df.append(data_row_2, ignore_index=True)
 
         # case_text = self.get_case_text(case['TitelEmphasis'])
@@ -185,3 +184,21 @@ class DataScraper():
 # for case in results:
 #     print(case)
 #     exit()
+
+if __name__ == '__main__':
+    scraper = DataScraper()
+    scraper.set_existing_files()
+    results = scraper.query_uitspraken()
+
+    results = results[:3]
+    for case in results:
+        parsed_id = case['TitelEmphasis'].replace(':', '-') 
+        print(parsed_id)
+        if parsed_id in scraper.cases_already_scraped:
+            print('nah')
+            continue
+        else:
+            print('yeh')
+            scraper.handle_case(case, parsed_id)
+
+    print(scraper.case_verdict_df.head())

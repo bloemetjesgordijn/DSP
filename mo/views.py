@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect, HttpResponse
 from django.core.files.storage import FileSystemStorage
 from .models import *
 from .data_scraper import *
+import time
 
 # Create your views here.
 def index(request):
@@ -19,13 +20,18 @@ def start_scraping(request):
         if f"{parsed_id}" in scraper.cases_already_scraped:
             continue
         else:
+            print('case found')
             scraper.handle_case(case, parsed_id)
+    print("{INFO}: Done with scraping...")
+    time.sleep(2)
+    print("{INFO}: Starting word processing...")
     scraper.process_search_words()
-    scraper.push_verdicts_to_db_new()
-    scraper.push_case_data_to_db_new()
-    scraper.push_counts_to_db_new()
+    print("{INFO}: Done with word processing...")
+    # scraper.push_verdicts_to_db_new()
+    # scraper.push_case_data_to_db_new()
+    # scraper.push_counts_to_db_new()
+    return HttpResponse("<h2> Finished scraping, new data is stored in the database</h2>")
     
-    # scraper.cases_df.to_csv('..data/cases4.csv', sep=';')
 
 def upload(request):
     if request.method == "POST" and request.FILES['file']:
