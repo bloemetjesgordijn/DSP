@@ -1,10 +1,25 @@
-from django.shortcuts import render, redirect
+from django.http import JsonResponse
+from django.shortcuts import render, redirect, HttpResponse
 from django.core.files.storage import FileSystemStorage
 from .models import *
+from .data_scraper import *
 
 # Create your views here.
 def index(request):
     return render(request, 'index.html')
+
+def start_scraping(request):
+    scraper = DataScraper()
+    results = scraper.query_uitspraken()
+    if not results:
+        return HttpResponse("<h3>No results found</h3>")
+    for case in results:
+        parsed_id = case['TitelEmphasis'].replace(':', '-') 
+        if f"{parsed_id}.txt" in scraper.cases_already_scraped:
+            continue
+        else:
+            scraper.handle_case(case, parsed_id)
+    scraper.cases_df.to_csv('..data/cases4.csv', sep=';')
 
 def upload(request):
     if request.method == "POST" and request.FILES['file']:

@@ -8,3 +8,5 @@ cases.csv
 .DS_Store
 processed_data/
 tableau/database/loader.py
+newData/
+.env
