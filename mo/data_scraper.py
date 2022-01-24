@@ -171,17 +171,6 @@ class DataScraper():
         df.to_sql('case_data', con=conn, schema='public', if_exists='append', index=False, chunksize=500)
         conn.close()
     
-# scraper = DataScraper()
-# scraper.set_existing_files()
-# print(scraper.cases_already_scraped)
-# print('lets go')
-# results = scraper.query_uitspraken()
-# print('done')
-# if not results:
-#     exit()
-# for case in results:
-#     print(case)
-#     exit()
 
 if __name__ == '__main__':
     scraper = DataScraper()
