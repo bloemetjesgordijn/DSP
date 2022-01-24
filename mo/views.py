@@ -10,16 +10,22 @@ def index(request):
 
 def start_scraping(request):
     scraper = DataScraper()
+    scraper.set_existing_files()
     results = scraper.query_uitspraken()
     if not results:
         return HttpResponse("<h3>No results found</h3>")
     for case in results:
         parsed_id = case['TitelEmphasis'].replace(':', '-') 
-        if f"{parsed_id}.txt" in scraper.cases_already_scraped:
+        if f"{parsed_id}" in scraper.cases_already_scraped:
             continue
         else:
             scraper.handle_case(case, parsed_id)
-    scraper.cases_df.to_csv('..data/cases4.csv', sep=';')
+    scraper.process_search_words()
+    scraper.push_verdicts_to_db_new()
+    scraper.push_case_data_to_db_new()
+    scraper.push_counts_to_db_new()
+    
+    # scraper.cases_df.to_csv('..data/cases4.csv', sep=';')
 
 def upload(request):
     if request.method == "POST" and request.FILES['file']:

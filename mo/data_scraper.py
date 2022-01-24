@@ -7,6 +7,7 @@ import pandas as pd
 from sqlalchemy import create_engine
 from dotenv import load_dotenv
 
+from constants import *
 load_dotenv()
 
 class DataScraper():
@@ -15,9 +16,9 @@ class DataScraper():
         self.baseUrl = 'https://uitspraken.rechtspraak.nl/api/zoek' 
         self.uitsprakenBaseUrl = 'https://uitspraken.rechtspraak.nl/inziendocument?id='
         self.case_count = 100000 
-        self.save_text_location = os.getcwd() + '/data/courtcases/' 
-        self.cases_df = pd.read_csv("data/cases3.csv", sep=',')
-        self.cases_already_scraped = os.listdir(self.save_text_location)
+        # self.save_text_location = os.getcwd() + '/data/courtcases/' 
+        # self.cases_df = pd.read_csv("data/cases3.csv", sep=',')
+        # self.cases_already_scraped = os.listdir(self.save_text_location)
         self.host = os.getenv('HOST')
         self.user = os.getenv('DEFAULT_USER')
         self.pw = os.getenv('PASSWORD')
@@ -25,8 +26,11 @@ class DataScraper():
         self.db = os.getenv('DATABASE')
         self.sslmode = os.getenv("SSLMODE")
         self.connection_str = f"postgresql://{self.user}:{self.pw}@{self.host}:{self.port}/{self.db}?sslmode={self.sslmode}"
+        self.case_verdict_df = pd.DataFrame(columns=['date', 'caseid', 'casetext'])
+        # Tekstfragmenten ommitten for now
+        self.cases_df = pd.DataFrame(columns=['Titel', 'Uitspraakdatum', 'UitspraakdatumType', 'GerechtelijkProductType', 'Proceduresoorten', 'Rechtsgebieden', 'caseid'])
 
-    def get_existing_files(self):
+    def set_existing_files(self):
         engine = create_engine(self.connection_str)
         conn = engine.connect()
         df = pd.read_sql('''SELECT caseid FROM public.court_verdicts''', con=conn)
@@ -72,12 +76,66 @@ class DataScraper():
         return uitspraak
 
     def handle_case(self, case, parsed_id):
-        case_text = self.get_case_text(case['TitelEmphasis'])
-        with open(self.save_text_location + parsed_id + ".txt","w+", encoding='utf-8') as f:
-            f.write(case_text)
-        case['Case ID'] = parsed_id
-        self.cases_df = self.cases_df.append(case, ignore_index = True)
+        data_row_1 = {
+            "date": case['Uitspraakdatum'],
+            "caseid": parsed_id,
+            "casetext": self.get_case_text(case['TitelEmphasis'])
+        }
+        data_row_2 = {key: val for key, val in case.items() if key in self.cases_df.columns}
+        data_row_2['caseid'] = parsed_id
 
+        self.case_verdict_df.append(data_row_1, ignore_index=True)
+        self.cases_df = self.cases_df.append(data_row_2, ignore_index=True)
+
+        # case_text = self.get_case_text(case['TitelEmphasis'])
+        # with open(self.save_text_location + parsed_id + ".txt","w+", encoding='utf-8') as f:
+            # f.write(case_text)
+
+    def process_search_words(self):
+        data = pd.DataFrame()
+        for key, search_words in DRUGS_AND_PRECURSORS.items():
+            print(key)
+            print(search_words)
+            df = self.count_mentions(search_words).rename(columns={"count": f"{key}_count"})
+            try:
+                data = pd.merge(data, df, on=['date', 'Case ID'], how='left')
+            except:
+                data = df
+        data.sort_values(by='date', ascending=False, inplace=True)
+        self.drug_word_count_df = data
+
+    def count_mentions(self, word_arr):
+        date_and_count = []
+        for _, row in self.case_verdict_df.iterrows():
+            date = row["date"]
+            case_id = row['caseid']
+            case_text = row['casetext']
+            occurrences = 0
+            for word in word_arr:
+                occurrences += case_text.lower().count(word.lower())
+            date_and_count.append([date, case_id, occurrences])
+
+        results = pd.DataFrame(date_and_count, columns=['date', 'caseid', 'count'])
+        return results
+
+    def push_verdicts_to_db_new(self):
+        engine = create_engine(self.connection_str)
+        conn = engine.connect()
+        self.case_verdict_df.to_sql('court_verdicts', con=conn, schema='public', if_exists='append', index=False, chunksize=500)
+        conn.close()
+
+    def push_case_data_to_db_new(self):
+        engine = create_engine(self.connection_str)
+        conn = engine.connect()
+        self.cases_df.to_sql('case_data', con=conn, schema='public', if_exists='append', index=False, chunksize=500)
+        conn.close()
+
+    def push_counts_to_db_new(self):
+        engine = create_engine(self.connection_str)
+        conn = engine.connect()
+        self.drug_word_count_df.to_sql('court_verdicts', con=conn, schema='public', if_exists='append', index=False, chunksize=500)
+        conn.close()
+    
     def push_verdicts_to_db(self):
         engine = create_engine(self.connection_str)
         conn = engine.connect()
@@ -115,3 +173,15 @@ class DataScraper():
         df.rename(columns=mapper, inplace=True)
         df.to_sql('case_data', con=conn, schema='public', if_exists='append', index=False, chunksize=500)
         conn.close()
+    
+# scraper = DataScraper()
+# scraper.set_existing_files()
+# print(scraper.cases_already_scraped)
+# print('lets go')
+# results = scraper.query_uitspraken()
+# print('done')
+# if not results:
+#     exit()
+# for case in results:
+#     print(case)
+#     exit()
