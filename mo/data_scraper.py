@@ -5,10 +5,10 @@ import os
 from bs4 import BeautifulSoup
 import pandas as pd
 from sqlalchemy import create_engine
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 
-from constants import *
-load_dotenv()
+from .constants import DRUGS_AND_PRECURSORS
+# load_dotenv()
 
 class DataScraper():
     def __init__(self, query='drugs'):
@@ -79,10 +79,17 @@ class DataScraper():
             "caseid": parsed_id,
             "casetext": self.get_case_text(case['TitelEmphasis'])
         }
+        df_row_1 = pd.DataFrame.from_dict(data_row_1)
+
         data_row_2 = {key: val for key, val in case.items() if key in self.cases_df.columns}
         data_row_2['caseid'] = parsed_id
-        self.case_verdict_df = self.case_verdict_df.append(data_row_1, ignore_index=True)
-        self.cases_df = self.cases_df.append(data_row_2, ignore_index=True)
+        df_row_2 = pd.DataFrame.from_dict(data_row_2)
+        
+        self.case_verdict_df = pd.concat([self.case_verdict_df, df_row_1]) 
+        self.cases_df = pd.concat([self.cases_df, df_row_2])
+
+        # self.case_verdict_df = self.case_verdict_df.append(data_row_1, ignore_index=True)
+        # self.cases_df = self.cases_df.append(data_row_2, ignore_index=True)
 
         # case_text = self.get_case_text(case['TitelEmphasis'])
         # with open(self.save_text_location + parsed_id + ".txt","w+", encoding='utf-8') as f:

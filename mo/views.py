@@ -10,17 +10,20 @@ def index(request):
     return render(request, 'index.html')
 
 def start_scraping(request):
+    print('{INFO}: Initializing Scraper...')
     scraper = DataScraper()
+    print("{INFO}: Scraper initialized...")
     scraper.set_existing_files()
     results = scraper.query_uitspraken()
+    print("{INFO}: No results found... ")
     if not results:
         return HttpResponse("<h3>No results found</h3>")
+    print("{INFO}: Response returned succesfully, going over them now...")
     for case in results:
         parsed_id = case['TitelEmphasis'].replace(':', '-') 
         if f"{parsed_id}" in scraper.cases_already_scraped:
             continue
         else:
-            print('case found')
             scraper.handle_case(case, parsed_id)
     print("{INFO}: Done with scraping...")
     time.sleep(2)
