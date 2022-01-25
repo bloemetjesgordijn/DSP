@@ -23,18 +23,15 @@ def start_scraping(request):
     print(f"[INFO]: {len(new_case_results)} new cases found...")
     for case in new_case_results[:10]:
         parsed_id = case['TitelEmphasis'].replace(':', '-') 
-        # if f"{parsed_id}" in scraper.cases_already_scraped:
-            # continue
-        # else:
         scraper.handle_case(case, parsed_id)
     print("{INFO}: Done with scraping...")
     time.sleep(2)
     print("{INFO}: Starting word processing...")
     scraper.process_search_words()
     print("{INFO}: Done with word processing...")
-    # scraper.push_verdicts_to_db_new()
-    # scraper.push_case_data_to_db_new()
-    # scraper.push_counts_to_db_new()
+    scraper.push_verdicts_to_db_new()
+    scraper.push_case_data_to_db_new()
+    scraper.push_counts_to_db_new()
     return HttpResponse("<h2> Finished scraping, new data is stored in the database</h2>")
 
     
