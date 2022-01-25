@@ -18,13 +18,15 @@ def start_scraping(request):
     print("{INFO}: No results found... ")
     if not results:
         return HttpResponse("<h3>No results found</h3>")
-    print("{INFO}: Response returned succesfully, going over them now...")
-    for case in results:
+    print(f"[INFO]: Response returned {len(results)}succesfully, going over them now...")
+    new_case_results = [result for result in results if result['TitelEmphasis'].replace(':', '-') not in scraper.cases_already_scraped]
+    print(f"[INFO]: {len(new_case_results)} new cases found...")
+    for case in new_case_results[:10]:
         parsed_id = case['TitelEmphasis'].replace(':', '-') 
-        if f"{parsed_id}" in scraper.cases_already_scraped:
-            continue
-        else:
-            scraper.handle_case(case, parsed_id)
+        # if f"{parsed_id}" in scraper.cases_already_scraped:
+            # continue
+        # else:
+        scraper.handle_case(case, parsed_id)
     print("{INFO}: Done with scraping...")
     time.sleep(2)
     print("{INFO}: Starting word processing...")
@@ -34,6 +36,7 @@ def start_scraping(request):
     # scraper.push_case_data_to_db_new()
     # scraper.push_counts_to_db_new()
     return HttpResponse("<h2> Finished scraping, new data is stored in the database</h2>")
+
     
 
 def upload(request):

@@ -2,7 +2,6 @@ import os
 import pandas as pd
 from sqlalchemy import create_engine
 from dotenv import load_dotenv
-
 load_dotenv()
 
 class Loader():
@@ -38,7 +37,3 @@ class Loader():
         conn = engine.connect()
         self.sewege_df = pd.read_sql('sewage', con=conn)
         conn.close()
-
-l = Loader()
-l.load_case_data()
-print(l.cases_df)
