@@ -7,7 +7,7 @@ import pandas as pd
 from sqlalchemy import create_engine
 # from dotenv import load_dotenv
 
-from .constants import DRUGS_AND_PRECURSORS
+from constants import DRUGS_AND_PRECURSORS
 # load_dotenv()
 
 class DataScraper():
