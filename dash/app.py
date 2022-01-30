@@ -87,7 +87,7 @@ app.layout = html.Div(children=[
     dcc.Checklist(
         id="line-selector",
         options=get_options(),
-        value=[]
+        value=['XTC', 'MDMA']
     ),
     html.Div(children='''
         Sewage data
@@ -123,7 +123,8 @@ app.layout = html.Div(children=[
         children=[
             html.Ul(id='specific-case-output', children=[html.Li(i) for i in relevant_cases])
         ],
-    )
+    ),
+    html.Div(id="clickdata")
 ])
 
 @app.callback(
@@ -240,6 +241,34 @@ def update_case_check(input, amount):
         else:
             relevant_cases = []
     return relevant_cases
+
+@app.callback(
+    Output('clickdata', 'children'),
+    Input('sliding-graph', 'clickData'),
+    Input('sliding-graph', 'figure')
+)
+def graph_click(click_data, figure):
+    print(click_data)
+    fig_data = figure.get('data')
+    points = click_data.get('points')[0]
+
+    for i in range(len(fig_data[:1])):
+        print(i)
+        x_axis = fig_data[i].get('x')
+        
+        point_index = points.get('pointIndex')
+        click_date = x_axis[point_index]
+
+    curvenumber = points.get('curveNumber')
+    print(curvenumber)
+
+    print(fig_data[i])
+
+        
+    
+    
+
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
