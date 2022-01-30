@@ -5,9 +5,17 @@ from .models import *
 from .data_scraper import *
 import time
 
+
+from mo.tasks import scrape
+
+
 # Create your views here.
 def index(request):
     return render(request, 'index.html')
+
+def test_scrape(request):
+    scrape_task = scrape.delay()
+    return render(request, 'test.html', {"task_id": scrape_task.task_id})
 
 def start_scraping(request):
     print('{INFO}: Initializing Scraper...')

@@ -5,3 +5,7 @@ SQLAlchemy
 requests
 psycopg2-binary
 # dotenv-python
+celery
+redis
+django-celery-results
+celery-progress

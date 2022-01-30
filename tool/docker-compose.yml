@@ -10,3 +10,19 @@ services:
       - .:/code
     env_file:
       - .env
+    depends_on:
+      - redis
+  
+  redis:
+    image: redis:6-alpine
+  
+  celery:
+    build: .
+    command: celery --app dsp worker --loglevel=info --logfile=logs/celery.log
+    volumes:
+      - .:/code
+    env_file:
+      - .env
+    depends_on:
+      - web
+      - redis

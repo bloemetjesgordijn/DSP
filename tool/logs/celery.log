@@ -1,0 +1,18 @@
+[2022-01-30 16:12:49,356: INFO/MainProcess] Task mo.sample_tasks.scrape[475270ed-35c9-41cf-860b-7d7f3f78cca9] received
+[2022-01-30 16:12:55,419: INFO/MainProcess] Task mo.sample_tasks.scrape[8196bbab-51b1-4a83-8916-96c6a389c083] received
+[2022-01-30 16:13:14,636: INFO/MainProcess] Task mo.sample_tasks.scrape[0dc11395-d303-4a65-a94a-f20324c0e299] received
+[2022-01-30 16:13:14,787: INFO/ForkPoolWorker-3] Task mo.sample_tasks.scrape[475270ed-35c9-41cf-860b-7d7f3f78cca9] succeeded in 25.41313630300101s: 'All is scraped'
+[2022-01-30 16:13:15,891: INFO/MainProcess] Task mo.sample_tasks.scrape[c0b9e339-7465-43c1-a171-1add6c9fba8d] received
+[2022-01-30 16:13:20,832: INFO/ForkPoolWorker-4] Task mo.sample_tasks.scrape[8196bbab-51b1-4a83-8916-96c6a389c083] succeeded in 25.403801219999878s: 'All is scraped'
+[2022-01-30 16:13:40,069: INFO/ForkPoolWorker-5] Task mo.sample_tasks.scrape[0dc11395-d303-4a65-a94a-f20324c0e299] succeeded in 25.4196361359991s: 'All is scraped'
+[2022-01-30 16:13:41,329: INFO/ForkPoolWorker-3] Task mo.sample_tasks.scrape[c0b9e339-7465-43c1-a171-1add6c9fba8d] succeeded in 25.435855137000544s: 'All is scraped'
+[2022-01-30 16:15:07,367: INFO/MainProcess] Task mo.sample_tasks.scrape[59d0f1e7-c8ec-4155-95cd-ab4077ea5646] received
+[2022-01-30 16:15:32,760: INFO/ForkPoolWorker-3] Task mo.sample_tasks.scrape[59d0f1e7-c8ec-4155-95cd-ab4077ea5646] succeeded in 25.383091594998405s: 'All is scraped'
+[2022-01-30 16:24:46,145: INFO/MainProcess] Task mo.sample_tasks.scrape[ecd3f8d4-a17b-4f2d-b5f0-75abe5c1b35e] received
+[2022-01-30 16:25:04,297: INFO/MainProcess] Task mo.sample_tasks.scrape[df767cfb-73c2-4371-ab86-5f35ce7a4b57] received
+[2022-01-30 16:25:11,537: INFO/ForkPoolWorker-3] Task mo.sample_tasks.scrape[ecd3f8d4-a17b-4f2d-b5f0-75abe5c1b35e] succeeded in 25.382736595000097s: 'All is scraped'
+[2022-01-30 16:25:29,689: INFO/ForkPoolWorker-4] Task mo.sample_tasks.scrape[df767cfb-73c2-4371-ab86-5f35ce7a4b57] succeeded in 25.38657609599977s: 'All is scraped'
+[2022-01-30 16:25:40,455: INFO/MainProcess] Task mo.sample_tasks.scrape[be30b0e4-b922-41e7-ab5a-70df1c4fd8aa] received
+[2022-01-30 16:26:05,877: INFO/ForkPoolWorker-3] Task mo.sample_tasks.scrape[be30b0e4-b922-41e7-ab5a-70df1c4fd8aa] succeeded in 25.412933553001494s: 'All is scraped'
+[2022-01-30 16:32:23,841: INFO/MainProcess] Task mo.sample_tasks.scrape[e9bec978-a21a-41ab-ae12-107b7c583437] received
+[2022-01-30 16:32:49,226: INFO/ForkPoolWorker-3] Task mo.sample_tasks.scrape[e9bec978-a21a-41ab-ae12-107b7c583437] succeeded in 25.382521386000008s: 'All is scraped'

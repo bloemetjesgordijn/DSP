@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,12 +21,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-h(xe8d&*ah4&bt2ge4s-&*c!c9yu=16pkumo#$)4827z)gj#vm'
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = bool(os.getenv("DEBUG", 1))
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "").split(' ')
 
 
 # Application definition
@@ -37,7 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'mo'
+    'mo',
+    'django_celery_results',
+    'celery_progress'
 ]
 
 MIDDLEWARE = [
@@ -80,6 +83,11 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER", "redis://redis:6379/0")
+CELERY_RESULT_BACKEND = os.getenv("CELERY_BACKEND", "redis://redis:6379/0")
+CELERY_ACCEPT_CONTENT = os.getenv("CELERY_CONTENT").split(' ')
+CELERY_TASK_SERIALIZER = os.getenv("CELERY_SERIALIZER")
 
 
 # Password validation
