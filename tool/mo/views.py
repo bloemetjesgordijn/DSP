@@ -4,9 +4,10 @@ from django.core.files.storage import FileSystemStorage
 from .models import *
 from .data_scraper import *
 import time
+from django_celery_results.models import TaskResult
 
 
-from mo.tasks import scrape
+from mo.tasks import scrape, scrape2
 
 
 # Create your views here.
@@ -14,8 +15,11 @@ def index(request):
     return render(request, 'index.html')
 
 def test_scrape(request):
-    scrape_task = scrape.delay()
-    return render(request, 'test.html', {"task_id": scrape_task.task_id})
+    x = TaskResult.objects.filter(status=['-'])
+    print(x)
+    scrape_task = scrape2.delay()
+    return JsonResponse({"task_id": scrape_task.task_id})
+    # return render(request, 'test.html', {"task_id": scrape_task.task_id})
 
 def start_scraping(request):
     print('{INFO}: Initializing Scraper...')

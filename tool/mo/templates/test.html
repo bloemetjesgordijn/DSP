@@ -15,6 +15,7 @@
     <div id="progress-bar-message">Waiting for scraper to start...</div>
     <div id="celery-result"></div>
     <script src="{% static 'celery_progress/celery_progress.js' %}"></script>
+    <!-- <script src="{% static 'hallo.js' %}"></script> -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             var progressUrl = "{% url 'celery_progress:task_status' task_id %}";

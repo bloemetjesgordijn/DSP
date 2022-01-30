@@ -13,7 +13,8 @@
     <!-- <script type="text/javascript" src="{% static 'jquery-3.4.1.min.js' %}"></script> -->
     <script type='text/javascript' src='https://prod-uk-a.online.tableau.com/javascripts/api/viz_v1.js'></script>
     <link rel="stylesheet" type="text/css" href="{% static 'main.css' %}"> 
-    <script type="text/javascript" src="{% static 'main.js' %}"></script>
+    <script type="text/javascript" src="{% static 'hallo.js' %}"></script>
+    <script src="{% static 'celery_progress/celery_progress.js' %}"></script>
     <title>DSP</title>
     <script>
             $(document).ready(function(){
@@ -89,9 +90,12 @@
                     <div class="rounded bg-soft p-5">
                         <h3>Lorem, ipsum.</h3>
                         <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quaerat ratione facere consectetur a doloribus explicabo? Voluptatibus est repellendus quos harum quidem asperiores et sequi, veritatis cum voluptas magni sit aspernatur magnam aliquid animi error quaerat fuga. Fugit.</p>
-                        <a href="#">
-                            <button class="btn btn-lg btn-dark">Start scraping</button>
-                        </a>
+                        <button class="btn btn-lg btn-dark" id="scrape-btn">Start scraping</button>
+                        <div class='progress-wrapper'>
+                            <div id='progress-bar' class='progress-bar' style="background-color: #68a9ef; width: 0%;">&nbsp;</div>
+                          </div>
+                        <div id="progress-bar-message">Waiting for scraper to start...</div>
+                        <div id="celery-result"></div>
                     </div>
                 </div>
                 <div class="tab-pane fade" id="form">
