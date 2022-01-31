@@ -17,12 +17,12 @@
     <script src="{% static 'celery_progress/celery_progress.js' %}"></script>
     <title>DSP</title>
     <script>
-            $(document).ready(function(){
-                $("#myTab a").click(function(e){
-                    e.preventDefault();
-                    $(this).tab("show");
-                });
+        $(document).ready(function(){
+            $("#myTab a").click(function(e){
+                e.preventDefault();
+                $(this).tab("show");
             });
+        });
     </script>
 </head>
 <body>
@@ -50,7 +50,7 @@
                 <div class="tab-pane fade show active" id="home">
                     <div class="rounded bg-soft p-5">
                         <h3>Data system architecture -- High-level overview</h3>
-                        <img src="{% static 'tool_architecture.jpg' %}" class='centered'>
+                        <img src="{% static 'tool_architecture.jpg' %}" class='full-width'>
                         <br>
                         <h5></h5>
                         <p></p>
@@ -91,11 +91,13 @@
                         <h3>Lorem, ipsum.</h3>
                         <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quaerat ratione facere consectetur a doloribus explicabo? Voluptatibus est repellendus quos harum quidem asperiores et sequi, veritatis cum voluptas magni sit aspernatur magnam aliquid animi error quaerat fuga. Fugit.</p>
                         <button class="btn btn-lg btn-dark" id="scrape-btn">Start scraping</button>
-                        <div class='progress-wrapper'>
-                            <div id='progress-bar' class='progress-bar' style="background-color: #68a9ef; width: 0%;">&nbsp;</div>
-                          </div>
-                        <div id="progress-bar-message">Waiting for scraper to start...</div>
-                        <div id="celery-result"></div>
+                        <div class="space-above">
+                            <div class='progress-wrapper'>
+                                <div id='progress-bar' class='progress-bar rounded' style="width: 0%;"></div>
+                                <h6 id="progress-bar-message"></h6>
+                            </div>
+                        </div>
+                        <h4 id="celery-result"></h4>
                     </div>
                 </div>
                 <div class="tab-pane fade" id="form">

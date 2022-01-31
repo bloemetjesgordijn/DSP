@@ -8,6 +8,10 @@
     display: none;
 }
 
+.progress-bar {
+    height: 40px;
+}
+
 .nav-link {
     color: var(--bs-gray-900) !important;
 }
@@ -22,6 +26,24 @@
     width: 100%;
 }
 
-.centered {
+.white-text {
+    color: #fff;
+}
+
+.full-width {
     width: 100%;
+}
+
+.centered {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+}
+
+.space-above {
+    margin-top: 2rem;
+}
+
+.progress-bar {
+    margin-bottom: 0.5rem;
 }
