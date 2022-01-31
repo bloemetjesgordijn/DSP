@@ -15,8 +15,8 @@ def index(request):
     return render(request, 'index.html')
 
 def test_scrape(request):
-    x = TaskResult.objects.filter(status=['-'])
-    print(x)
+    # x = TaskResult.objects.filter(status=['-'])
+    # print(x)
     scrape_task = scrape2.delay()
     return JsonResponse({"task_id": scrape_task.task_id})
     # return render(request, 'test.html', {"task_id": scrape_task.task_id})
@@ -46,7 +46,6 @@ def start_scraping(request):
     scraper.push_counts_to_db_new()
     return HttpResponse("<h2> Finished scraping, new data is stored in the database</h2>")
 
-    
 
 def upload(request):
     if request.method == "POST" and request.FILES['file']:

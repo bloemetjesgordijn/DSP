@@ -11,3 +11,4 @@ tableau/database/loader.py
 newData/
 .env
 plan.md
+tool/db.sqlite3
