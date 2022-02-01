@@ -1,3 +1,4 @@
+from django.db import ProgrammingError
 import requests
 import json
 import urllib.request
@@ -24,15 +25,29 @@ class DataScraper():
         self.sslmode = os.getenv("SSLMODE")
         self.connection_str = f"postgresql://{self.user}:{self.pw}@{self.host}:{self.port}/{self.db}?sslmode={self.sslmode}"
 
-        # Tekstfragmenten ommitten for now
-        self.cases_df = pd.DataFrame(columns=['Titel', 'Uitspraakdatum', 'UitspraakdatumType', 'GerechtelijkProductType', 'Proceduresoorten', 'Rechtsgebieden', 'caseid'])
-        self.case_verdict_df = pd.DataFrame(columns=['date', 'caseid', 'casetext'])
+        self.col_mapper = {
+            'Titel': 'titel',
+            'Uitspraakdatum': 'court_datum', 
+            'UitspraakdatumType': 'uitspraak_type', 
+            'GerechtelijkProductType': 'gerechtelijk_product_type', 
+            'Proceduresoorten': 'procedure_soorten', 
+            'Rechtsbebieden': 'rechtsgebieden', 
+            'Case ID': 'case_id' 
+        }
+        self.cases_df = pd.DataFrame(columns=['titel', 'court_datum', 'uitspraak_type', 'gerechtelijk_product_type', 'procedure_soorten', 'rechtsgebieden', 'case_id'])
+        self.case_verdict_df = pd.DataFrame(columns=['date', 'case_id', 'case_text'])
 
     def set_existing_files(self):
         engine = create_engine(self.connection_str)
         conn = engine.connect()
-        df = pd.read_sql('''SELECT caseid FROM public.court_verdicts''', con=conn)
-        self.cases_already_scraped = list(df['caseid'])
+        try:
+            print('IN TRY')
+            df = pd.read_sql('court_verdicts', con=conn)
+            self.cases_already_scraped = list(df['case_id'])
+        except Exception:
+            print('IN EXCEPTION')
+            print("No table with that name yet")
+            self.cases_already_scraped = []
 
     def query_uitspraken(self):
         files = {
@@ -76,13 +91,13 @@ class DataScraper():
     def handle_case(self, case, parsed_id):
         data_row_1 = {
             "date": [case['Uitspraakdatum']],
-            "caseid": [parsed_id],
-            "casetext": [self.get_case_text(case['TitelEmphasis'])]
+            "case_id": [parsed_id],
+            "case_text": [self.get_case_text(case['TitelEmphasis'])]
         }
         df_row_1 = pd.DataFrame.from_dict(data_row_1)
 
-        data_row_2 = {key: [val] for key, val in case.items() if key in self.cases_df.columns}
-        data_row_2['caseid'] = [parsed_id]
+        data_row_2 = {self.col_mapper[key]: [val] for key, val in case.items() if key in self.col_mapper}
+        data_row_2['case_id'] = [parsed_id]
         df_row_2 = pd.DataFrame.from_dict(data_row_2)
         
         self.case_verdict_df = pd.concat([self.case_verdict_df, df_row_1]) 
@@ -102,7 +117,7 @@ class DataScraper():
             print(search_words)
             df = self.count_mentions(search_words).rename(columns={"count": f"{key}_count"})
             try:
-                data = pd.merge(data, df, on=['date', 'Case ID'], how='left')
+                data = pd.merge(data, df, on=['date', 'case_id'], how='left')
             except:
                 data = df
         data.sort_values(by='date', ascending=False, inplace=True)
@@ -112,14 +127,14 @@ class DataScraper():
         date_and_count = []
         for _, row in self.case_verdict_df.iterrows():
             date = row["date"]
-            case_id = row['caseid']
-            case_text = row['casetext']
+            case_id = row['case_id']
+            case_text = row['case_text']
             occurrences = 0
             for word in word_arr:
                 occurrences += case_text.lower().count(word.lower())
             date_and_count.append([date, case_id, occurrences])
 
-        results = pd.DataFrame(date_and_count, columns=['date', 'caseid', 'count'])
+        results = pd.DataFrame(date_and_count, columns=['date', 'case_id', 'count'])
         return results
 
     def push_verdicts_to_db_new(self):
@@ -131,6 +146,7 @@ class DataScraper():
     def push_case_data_to_db_new(self):
         engine = create_engine(self.connection_str)
         conn = engine.connect()
+        print(self.cases_df.head())
         self.cases_df.to_sql('case_data', con=conn, schema='public', if_exists='append', index=False, chunksize=500)
         conn.close()
 
@@ -179,11 +195,11 @@ class DataScraper():
         conn.close()
     
 
-if __name__ == '__main__':
-    scraper = DataScraper()
-    scraper.set_existing_files()
+# if __name__ == '__main__':
+    # scraper = DataScraper()
+    # scraper.set_existing_files()
     # results = scraper.query_uitspraken()
-    print(type(scraper.cases_already_scraped))
+    # print(type(scraper.cases_already_scraped))
 
     # results = results[:3]
     # for case in results:
