@@ -31,7 +31,7 @@ class DataScraper():
             'UitspraakdatumType': 'uitspraak_type', 
             'GerechtelijkProductType': 'gerechtelijk_product_type', 
             'Proceduresoorten': 'procedure_soorten', 
-            'Rechtsbebieden': 'rechtsgebieden', 
+            'Rechtsgebieden': 'rechtsgebieden', 
             'Case ID': 'case_id' 
         }
         self.cases_df = pd.DataFrame(columns=['titel', 'court_datum', 'uitspraak_type', 'gerechtelijk_product_type', 'procedure_soorten', 'rechtsgebieden', 'case_id'])
@@ -103,12 +103,8 @@ class DataScraper():
         self.case_verdict_df = pd.concat([self.case_verdict_df, df_row_1]) 
         self.cases_df = pd.concat([self.cases_df, df_row_2])
 
-        # self.case_verdict_df = self.case_verdict_df.append(data_row_1, ignore_index=True)
-        # self.cases_df = self.cases_df.append(data_row_2, ignore_index=True)
-
-        # case_text = self.get_case_text(case['TitelEmphasis'])
-        # with open(self.save_text_location + parsed_id + ".txt","w+", encoding='utf-8') as f:
-            # f.write(case_text)
+        self.case_verdict_df = self.case_verdict_df.append(data_row_1, ignore_index=True)
+        self.cases_df = self.cases_df.append(data_row_2, ignore_index=True)
 
     def process_search_words(self):
         data = pd.DataFrame()

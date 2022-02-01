@@ -12,7 +12,7 @@ messages = {
     "step5": "Quering uitspraken.rechtspraak.nl API...",
     "step6": ["No results found... ", "Response returned NR_HERE cases succesfully, checking for new cases..."],
     "step7": "NR_HERE new cases found...",
-    "step8": "Handled case ECLI_HERE",
+    "step8": "Handled case ECLI_HERE - (STATUS_HERE)",
     "step9": "Done scraping",
     "step10": "Starting word processing...",
     "step11": "Done with word processing...",
@@ -46,24 +46,24 @@ def scrape_task(self):
     
     recorder.set_progress(6, total, messages['step6'][1].replace('NR_HERE', f'{len(results)}'))
     new_case_results = [result for result in results if result['TitelEmphasis'].replace(':', '-') not in scraper.cases_already_scraped]
-    recorder.set_progress(7, total, messages['step7'].replace('NR_HERE', f'{len(new_case_results)}'))
+    nr_new_cases = len(new_case_results)
+    recorder.set_progress(7, total, messages['step7'].replace('NR_HERE', f'{nr_new_cases}'))
 
-    for i, case in enumerate(new_case_results[:10]):
+    for i, case in enumerate(new_case_results):
         parsed_id = case['TitelEmphasis'].replace(':', '-') 
         scraper.handle_case(case, parsed_id)
-        recorder.set_progress(8, total, messages['step8'].replace('ECLI_HERE', f"{parsed_id}"))
+        recorder.set_progress(8, total, messages['step8']\
+                                            .replace('ECLI_HERE', f"{parsed_id}")\
+                                            .replace('STATUS_HERE', f"{i+1}/{nr_new_cases}"))
     recorder.set_progress(9, total, messages['step9'])
     recorder.set_progress(10, total, messages['step10'])
-    scraper.process_search_words()
+    # scraper.process_search_words()
     recorder.set_progress(11, total, messages['step11'])
     recorder.set_progress(12, total, messages['step12'])
-    scraper.push_verdicts_to_db_new()
-    # time.sleep(2)
+    # scraper.push_verdicts_to_db_new()
     recorder.set_progress(13, total, messages['step13'])
-    # time.sleep(2)
     scraper.push_case_data_to_db_new()
     recorder.set_progress(14, total, messages['step14'])
-    # time.sleep(2)
-    scraper.push_counts_to_db_new()
+    # scraper.push_counts_to_db_new()
     recorder.set_progress(15, total, messages['step15'])
     return "Finished scraping, new data is stored in the database"
