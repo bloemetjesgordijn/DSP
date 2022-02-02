@@ -12,7 +12,7 @@ from .tasks import scrape_task
 
 # Create your views here.
 def index(request):
-    return render(request, 'index.html')
+    return render(request, 'mo/index.html')
 
 def start_scrape_task(request):
     # x = TaskResult.objects.filter(status=['-'])
@@ -36,7 +36,7 @@ def upload(request):
             description=description,
             crime_type=crime_type
         )
-        return render(request, 'index.html', {
+        return render(request, 'mo/index.html', {
             'uploaded_file_url': uploaded_file.file.url,
             "uploaded_file": uploaded_file
         })
