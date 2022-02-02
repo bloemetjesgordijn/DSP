@@ -103,8 +103,6 @@ class DataScraper():
         self.case_verdict_df = pd.concat([self.case_verdict_df, df_row_1]) 
         self.cases_df = pd.concat([self.cases_df, df_row_2])
 
-        self.case_verdict_df = self.case_verdict_df.append(data_row_1, ignore_index=True)
-        self.cases_df = self.cases_df.append(data_row_2, ignore_index=True)
 
     def process_search_words(self):
         data = pd.DataFrame()
