@@ -1,0 +1,40 @@
+[2022-02-02 14:41:49,514: INFO/MainProcess] Task mo.tasks.scrape_task[fac2ed9e-2a41-4f1b-bf17-56d803297bc5] received
+[2022-02-02 14:41:49,534: WARNING/ForkPoolWorker-3] <@task: mo.tasks.scrape_task of dsp at 0xffffa2d3d490>
+[2022-02-02 14:41:49,537: WARNING/ForkPoolWorker-3] {'__qualname__': 'scrape_task', '__trace__': <function build_tracer.<locals>.trace_task at 0xffff92fcdb80>}
+[2022-02-02 14:41:54,249: WARNING/ForkPoolWorker-3] IN TRY
+[2022-02-02 14:42:41,505: WARNING/ForkPoolWorker-3] safrol
+[2022-02-02 14:42:41,506: WARNING/ForkPoolWorker-3] ['safrol', 'isosafrol', 'safrool', 'isosafrool']
+[2022-02-02 14:42:41,529: WARNING/ForkPoolWorker-3] piperonal
+[2022-02-02 14:42:41,531: WARNING/ForkPoolWorker-3] ['piperonal', 'piperonalglycidaat']
+[2022-02-02 14:42:41,545: WARNING/ForkPoolWorker-3] PMK
+[2022-02-02 14:42:41,547: WARNING/ForkPoolWorker-3] ['PMK', 'piperonylmethylketon']
+[2022-02-02 14:42:41,560: WARNING/ForkPoolWorker-3] BMK
+[2022-02-02 14:42:41,562: WARNING/ForkPoolWorker-3] ['BMK', 'BenzylMethylKeton']
+[2022-02-02 14:42:41,575: WARNING/ForkPoolWorker-3] apaan
+[2022-02-02 14:42:41,577: WARNING/ForkPoolWorker-3] ['apaan', 'Alpha-Phenylacetoacetonitrile', 'AlphaPhenylacetoacetonitrile']
+[2022-02-02 14:42:41,596: WARNING/ForkPoolWorker-3] GBL
+[2022-02-02 14:42:41,597: WARNING/ForkPoolWorker-3] ['GBL', 'Gamma-butyrolacton']
+[2022-02-02 14:42:41,611: WARNING/ForkPoolWorker-3] MDP2P
+[2022-02-02 14:42:41,612: WARNING/ForkPoolWorker-3] ['MDP2P']
+[2022-02-02 14:42:41,620: WARNING/ForkPoolWorker-3] efedrine
+[2022-02-02 14:42:41,621: WARNING/ForkPoolWorker-3] ['Efedrine', 'Ephedrine']
+[2022-02-02 14:42:41,636: WARNING/ForkPoolWorker-3] ergotamine
+[2022-02-02 14:42:41,637: WARNING/ForkPoolWorker-3] ['Ergotamine']
+[2022-02-02 14:42:41,646: WARNING/ForkPoolWorker-3] lyserginezuur
+[2022-02-02 14:42:41,648: WARNING/ForkPoolWorker-3] ['Lyserginezuur']
+[2022-02-02 14:42:41,657: WARNING/ForkPoolWorker-3] methamphetamine
+[2022-02-02 14:42:41,658: WARNING/ForkPoolWorker-3] ['Methamfetamine', 'Methamphetamine']
+[2022-02-02 14:42:41,672: WARNING/ForkPoolWorker-3] MDMA
+[2022-02-02 14:42:41,673: WARNING/ForkPoolWorker-3] ['MDMA', 'Methylenedioxymethamphetamine']
+[2022-02-02 14:42:41,687: WARNING/ForkPoolWorker-3] amphetamine
+[2022-02-02 14:42:41,688: WARNING/ForkPoolWorker-3] ['Amfetamine', 'Amphetamine']
+[2022-02-02 14:42:41,703: WARNING/ForkPoolWorker-3] cocaine
+[2022-02-02 14:42:41,704: WARNING/ForkPoolWorker-3] ['Cocaïne', 'Cocaine', 'Coke']
+[2022-02-02 14:42:41,725: WARNING/ForkPoolWorker-3] XTC
+[2022-02-02 14:42:41,726: WARNING/ForkPoolWorker-3] ['XTC', 'ecstasy']
+[2022-02-02 14:42:41,740: WARNING/ForkPoolWorker-3] GHB
+[2022-02-02 14:42:41,741: WARNING/ForkPoolWorker-3] ['GHB', 'gamma-hydroxyboterzuur', '4-hydroxybutaanzuur']
+[2022-02-02 14:42:41,820: WARNING/ForkPoolWorker-3] Sleeping...
+[2022-02-02 14:42:43,890: WARNING/ForkPoolWorker-3] Sleeping...
+[2022-02-02 14:42:45,957: WARNING/ForkPoolWorker-3] Sleeping...
+[2022-02-02 14:42:48,078: INFO/ForkPoolWorker-3] Task mo.tasks.scrape_task[fac2ed9e-2a41-4f1b-bf17-56d803297bc5] succeeded in 58.5455592770013s: 'Finished scraping, new data is stored in the database'

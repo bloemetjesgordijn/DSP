@@ -25,6 +25,8 @@ messages = {
 @shared_task(bind=True)
 def scrape_task(self):
     recorder = ProgressRecorder(self)
+    print(recorder.task)
+    print(vars(recorder.task))
     total = len(messages)
     time.sleep(1)
     recorder.set_progress(1, total, messages['step1'])

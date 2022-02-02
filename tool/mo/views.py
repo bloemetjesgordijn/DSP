@@ -18,8 +18,8 @@ def start_scrape_task(request):
     # x = TaskResult.objects.filter(status=['-'])
     # print(x)
     task = scrape_task.delay()
+    print(task)
     return JsonResponse({"task_id": task.task_id})
-    # return render(request, 'test.html', {"task_id": scrape_task.task_id})
 
 def upload(request):
     if request.method == "POST" and request.FILES['file']:

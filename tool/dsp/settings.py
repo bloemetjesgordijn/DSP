@@ -53,6 +53,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+CSRF_TRUSTED_ORIGINS= ['https://www.dsp-mo.nl', 'https://dsp-mo.nl', 'http://www.dsp-mo.nl', 'http://dsp-mo.nl']
+
 ROOT_URLCONF = 'dsp.urls'
 
 TEMPLATES = [
