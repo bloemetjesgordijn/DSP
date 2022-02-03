@@ -14,6 +14,7 @@ import time
 import plotly.io as pio
 from keywords import term_dict
 from sewage import amphetamine_series, methamphetamine_series, MDMA_series, cocaine_series
+import datetime
 
 # pio.templates.default = "none"
 
@@ -64,7 +65,7 @@ app.layout = html.Div(children=[
         id='rolling-mean-slider',
         min=1,
         max=25,
-        value=6,
+        value=1,
         step=1,
         marks={
         1: '1',
@@ -87,7 +88,7 @@ app.layout = html.Div(children=[
     dcc.Checklist(
         id="line-selector",
         options=get_options(),
-        value=['XTC', 'MDMA']
+        value=['XTC']
     ),
     html.Div(children='''
         Sewage data
@@ -124,7 +125,11 @@ app.layout = html.Div(children=[
             html.Ul(id='specific-case-output', children=[html.Li(i) for i in relevant_cases])
         ],
     ),
-    html.Div(id="clickdata")
+    html.Div(
+        children=[
+            html.Ul(id='specific-click-output', children=[html.Li(i) for i in relevant_cases])
+        ],
+    ),
 ])
 
 @app.callback(
@@ -135,6 +140,7 @@ app.layout = html.Div(children=[
     Input('mentions_case_selector', 'value'),
     Input('extra-terms-selector', 'value'))
 def update_figure(rolling_mean_value, line_selector, sewage_selector, mentions_case_selector, extra_terms):
+    globals()["mentions_case_selector"] = mentions_case_selector
     df = pd.DataFrame(columns = ['count', 'type'])
     for var in line_selector:
         if mentions_case_selector == 'mentions':
@@ -161,7 +167,6 @@ def update_figure(rolling_mean_value, line_selector, sewage_selector, mentions_c
     
     for var in extra_terms:
         print(extra_terms)
-        print(var)
         globals()[var + "_mentions_results"] = []
         globals()[var + "_cases_results"] = []
         if mentions_case_selector == 'mentions':
@@ -243,29 +248,51 @@ def update_case_check(input, amount):
     return relevant_cases
 
 @app.callback(
-    Output('clickdata', 'children'),
+    Output("specific-click-output", "children"),
     Input('sliding-graph', 'clickData'),
     Input('sliding-graph', 'figure')
 )
 def graph_click(click_data, figure):
-    print(click_data)
     fig_data = figure.get('data')
     points = click_data.get('points')[0]
-
-    for i in range(len(fig_data[:1])):
-        print(i)
-        x_axis = fig_data[i].get('x')
-        
-        point_index = points.get('pointIndex')
-        click_date = x_axis[point_index]
-
+    x_axis = fig_data[0].get('x')
+    point_index = points.get('pointIndex')
+    click_date = x_axis[point_index]
     curvenumber = points.get('curveNumber')
-    print(curvenumber)
+    figure_data = figure.get('data')
+    click_type = figure.get('data')[curvenumber].get('legendgroup')
+    if click_type in term_dict.keys():
+        words = term_dict.get(click_type)
+    else:
+        words = [click_type]
+    df = []
+    if globals()["mentions_case_selector"] == 'mentions':
+        df = plot_lines.count_mentions(words)
+    elif globals()["mentions_case_selector"] == 'cases':
+        df = plot_lines.count_cases(words)
+    formatted_date = datetime.datetime.strptime(click_date[:10], '%Y-%m-%d')
+    final_date = formatted_date.strftime('%m-%Y')
+    df = df[df['date'].str.contains(final_date)]
 
-    print(fig_data[i])
+    complete = []
+    for i in range(len(df)):
+        current = df.iloc[i]
+        link = html.A(current['id'])
+        link.href = 'https://uitspraken.rechtspraak.nl/inziendocument?id=' + current['id'].replace('-', ':')
+        link.target = '_blank'
+        curr = html.Div([
+                html.P(str(current['count']) + " " + click_type + " mentions in " + current['date']),
+                link
+            ])
+        curr_el = html.Li(curr)
+        complete.append(curr_el)
+    if len(complete) > 0:
+        relevant_cases = complete
+    else:
+        relevant_cases = []
+    return relevant_cases
 
-        
-    
+
     
 
 

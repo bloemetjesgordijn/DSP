@@ -9,39 +9,52 @@ merged_df = get_data.full_data()
 def count_mentions(word_arr):
     dates = []
     counts = []
+    uitspraakdata = []
+    ids = []
     for i in range(len(merged_df[:5100])):
         current = merged_df.iloc[i]
         current_date = current["Uitspraakdatum"]
         current_case_text = current['Case Text']
+        current_uitspraakdatum = current['Uitspraakdatum']
+        current_case_id = current['Case ID']
         occurrences = 0
         for i in word_arr:
             occurrences = occurrences + current_case_text.lower().count(i.lower())
-        dates.append(current_date)
-        counts.append(occurrences)
+        if occurrences > 0:
+            dates.append(current_date)
+            counts.append(occurrences)
+            uitspraakdata.append(current_uitspraakdatum)
+            ids.append(current_case_id)
 
     dates = pd.Series(dates)
     counts = pd.Series(counts)
-    print(counts.sum())
-    frame = { 'date': dates, 'count': counts}
+    frame = { 'date': dates, 'count': counts, 'date': uitspraakdata, 'id': ids}
     results = pd.DataFrame(frame)
     return results
 
 def count_cases(word_arr):
     dates = []
     counts = []
+    uitspraakdata = []
+    ids = []
     for i in range(len(merged_df)):
         current = merged_df.iloc[i]
         current_date = current['Uitspraakdatum']
         current_case_text = current['Case Text']
+        current_uitspraakdatum = current['Uitspraakdatum']
+        current_case_id = current['Case ID']
         occurrences = 0
         if any(x.lower() in current_case_text.lower() for x in word_arr):
             occurrences = 1
-        dates.append(current_date)
-        counts.append(occurrences)
+        if occurrences > 0:
+            dates.append(current_date)
+            counts.append(occurrences)
+            uitspraakdata.append(current_uitspraakdatum)
+            ids.append(current_case_id)
     
     dates = pd.Series(dates)
     counts = pd.Series(counts)
-    frame = { 'date': dates, 'count': counts}
+    frame = { 'date': dates, 'count': counts, 'date': uitspraakdata, 'id': ids}
     results = pd.DataFrame(frame)
     return results
 
@@ -68,7 +81,6 @@ def get_case_that_exceed_count(word_arr, count):
         occurrences = 0
         for i in word_arr:
             occurrences = occurrences + current_case_text.lower().count(i.lower())
-        print(occurrences)
         if(occurrences >= count):
             parsedId = current['Case ID'].replace('-', ':')
             all_occurrences.append(occurrences)
