@@ -71,6 +71,6 @@ def queryUitspraak():
         print(len(results), "records!")
         parseCaseInfo(results)
     except urllib.error.HTTPError as err:
-        print(err)
+        print(err) 
 
 queryUitspraak()

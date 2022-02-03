@@ -2,10 +2,7 @@
 # visit http://127.0.0.1:8050/ in your web browser.
 
 import dash
-from dash import dcc
-from dash import html
-# import dash_core_components as dcc
-# import dash_html_components as html
+from dash import dcc, html, Input, Output, State
 import plotly.express as px
 import pandas as pd
 from dash.dependencies import Input, Output
@@ -15,12 +12,10 @@ import plotly.io as pio
 from keywords import term_dict
 from sewage import amphetamine_series, methamphetamine_series, MDMA_series, cocaine_series
 import datetime
+import dash_bootstrap_components as dbc
 
-# pio.templates.default = "none"
-
-
-app = dash.Dash(__name__)
-
+# app = dash.Dash(__name__)
+app = dash.Dash(external_stylesheets=[dbc.themes.FLATLY])
 amphetamine_df = pd.DataFrame({'count': amphetamine_series.values, 'type': 'Amphetamine in sewage'}, index = amphetamine_series.index)
 methamphetamine_df = pd.DataFrame({'count': methamphetamine_series.values, 'type': 'Methamphetamine in sewage'}, index = methamphetamine_series.index)
 MDMA_df = pd.DataFrame({'count': MDMA_series.values, 'type': 'MDMA in sewage'}, index = MDMA_series.index)
@@ -37,18 +32,22 @@ def get_options():
     for key in local_term_dict:
         globals()[key + "_mentions_results"] = []
         globals()[key + "_cases_results"] = []
-        curr = {'label': key, 'value': key}
+        curr = {'label': " " + key, 'value': key}
         if curr not in options:
             options.append(curr)
     return options
 get_options()
 
+globals()["click_data"] = []
+
 app.layout = html.Div(children=[
-    html.H1(children='Data Systems Project group F6'),
+    html.H1(children='Data Systems Project group F6',
+    style={'text-align': 'center'}),
 
     html.Div(children='''
-        Uncovering modus operandi.
-    '''),
+        Uncovering modus operandi using court cases
+    ''',
+    style={'text-align': 'center'}),
 
     dcc.Graph(
         id='sliding-graph'
@@ -81,14 +80,17 @@ app.layout = html.Div(children=[
         {'label': 'Mentions', 'value': 'mentions'},
         {'label': 'Cases', 'value': 'cases'}
     ],
-    value='mentions'),
+    value='mentions',
+    inputStyle={"margin-left": "10px"}),
     html.Div(children='''
         Court mentions
     '''),
     dcc.Checklist(
         id="line-selector",
         options=get_options(),
-        value=['XTC']
+        value=[],
+        labelStyle={'display': 'inline-block'},
+        inputStyle={"margin-left": "10px"}
     ),
     html.Div(children='''
         Sewage data
@@ -99,7 +101,8 @@ app.layout = html.Div(children=[
         {'label': 'Methamphetamines', 'value': 'methamphetamines'},
         {'label': 'MDMA', 'value': 'MDMA'},
         {'label': 'Cocaine', 'value': 'cocaine'}],
-        value=[]
+        value=[],
+        inputStyle={"margin-left": "10px"}
     ),
     html.Div(children='''
         Extra terms:
@@ -110,7 +113,8 @@ app.layout = html.Div(children=[
     dcc.Checklist(
         id="extra-terms-selector",
         options=[],
-        value=[]
+        value=[],
+        inputStyle={"margin-left": "10px"}
     ),
     html.Button('Delete extra terms', id='delete-extra-items', n_clicks_timestamp = 0),
     html.Div(children='''
@@ -125,11 +129,24 @@ app.layout = html.Div(children=[
             html.Ul(id='specific-case-output', children=[html.Li(i) for i in relevant_cases])
         ],
     ),
-    html.Div(
+    dbc.Modal(
+            [
+                dbc.ModalHeader(dbc.ModalTitle("Court cases")),
+                dbc.ModalBody(html.Div(
         children=[
             html.Ul(id='specific-click-output', children=[html.Li(i) for i in relevant_cases])
         ],
-    ),
+    ),),
+                dbc.ModalFooter(
+                    dbc.Button(
+                        "Close", id="close", className="ms-auto", n_clicks=0
+                    )
+                ),
+            ],
+            id="modal",
+            size="lg",
+            is_open=False,
+        ),
 ])
 
 @app.callback(
@@ -195,32 +212,41 @@ def update_figure(rolling_mean_value, line_selector, sewage_selector, mentions_c
 #     return value
 
 @app.callback(
-    Output("extra-terms-selector", "options"),
-    Input("input", "value"),
-    Input("delete-extra-items", "n_clicks_timestamp")
+    [Output("extra-terms-selector", "options"),
+    Output("extra-terms-selector", "value")],
+    [Input("input", "value"),
+    Input("delete-extra-items", "n_clicks_timestamp"),
+    Input("extra-terms-selector", "value")]
 )
-def update_output(input, n_clicks_timestamp):
+def update_output(input, n_clicks_timestamp, value):
     delete_terms_button_timestamp = time.time()
     curr_time = str(int(time.time()))
     click_time = str(n_clicks_timestamp)[:-3]
     new_list = []
+    clean_terms_list = []
 
     if input is not None:
         extra_terms.append(input)
-    for term in extra_terms:
-        curr = {'label': term, 'value': term}
-        new_list.append(curr)
     if curr_time == click_time:
         print("Delete list")
         new_list = []
-       
-    # delete_terms_button_timestamp = n_clicks_timestamp
-    return new_list
+        clean_terms_list = []
+        # extra_terms = []
+        return new_list, []
+    else:
+        for i in extra_terms:
+            if i not in clean_terms_list:
+                clean_terms_list.append(i)
+        for term in clean_terms_list:
+            curr = {'label': term, 'value': term}
+            new_list.append(curr)
+        return new_list, value
+    # return new_list, new_list
 
 @app.callback(
     Output("specific-case-output", "children"),
     Input("specific-case-input", "value"),
-     Input("specific-case-amount-input", "value")
+    Input("specific-case-amount-input", "value")
 )
 def update_case_check(input, amount):
     cases = input
@@ -248,54 +274,64 @@ def update_case_check(input, amount):
     return relevant_cases
 
 @app.callback(
-    Output("specific-click-output", "children"),
-    Input('sliding-graph', 'clickData'),
-    Input('sliding-graph', 'figure')
+    [Output("specific-click-output", "children"),
+    Output("modal", "is_open")],
+    [Input('sliding-graph', 'clickData'),
+    Input('sliding-graph', 'figure'),
+    Input("close", "n_clicks"),
+    State("modal", "is_open")]
 )
-def graph_click(click_data, figure):
-    fig_data = figure.get('data')
-    points = click_data.get('points')[0]
-    x_axis = fig_data[0].get('x')
-    point_index = points.get('pointIndex')
-    click_date = x_axis[point_index]
-    curvenumber = points.get('curveNumber')
-    figure_data = figure.get('data')
-    click_type = figure.get('data')[curvenumber].get('legendgroup')
-    if click_type in term_dict.keys():
-        words = term_dict.get(click_type)
-    else:
-        words = [click_type]
-    df = []
-    if globals()["mentions_case_selector"] == 'mentions':
-        df = plot_lines.count_mentions(words)
-    elif globals()["mentions_case_selector"] == 'cases':
-        df = plot_lines.count_cases(words)
-    formatted_date = datetime.datetime.strptime(click_date[:10], '%Y-%m-%d')
-    final_date = formatted_date.strftime('%m-%Y')
-    df = df[df['date'].str.contains(final_date)]
-
-    complete = []
-    for i in range(len(df)):
-        current = df.iloc[i]
-        link = html.A(current['id'])
-        link.href = 'https://uitspraken.rechtspraak.nl/inziendocument?id=' + current['id'].replace('-', ':')
-        link.target = '_blank'
-        curr = html.Div([
-                html.P(str(current['count']) + " " + click_type + " mentions in " + current['date']),
-                link
-            ])
-        curr_el = html.Li(curr)
-        complete.append(curr_el)
-    if len(complete) > 0:
-        relevant_cases = complete
-    else:
-        relevant_cases = []
-    return relevant_cases
-
-
+def graph_click(click_data, figure, n1, is_open):
+    update = False
+    if globals()['click_data'] != click_data:
+        update = True
+        globals()["click_data"] = click_data
+    if is_open == True:
+        return [], False
+    elif update:
+        fig_data = figure.get('data')
+        points = click_data.get('points')[0]
+        x_axis = fig_data[0].get('x')
+        point_index = points.get('pointIndex')
+        click_date = x_axis[point_index]
+        curvenumber = points.get('curveNumber')
+        figure_data = figure.get('data')
+        click_type = figure.get('data')[curvenumber].get('legendgroup')
+        if click_type in term_dict.keys():
+            words = term_dict.get(click_type)
+        else:
+            words = [click_type]
+        df = []
+        if globals()["mentions_case_selector"] == 'mentions':
+            df = plot_lines.count_mentions(words)
+        elif globals()["mentions_case_selector"] == 'cases':
+            df = plot_lines.count_cases(words)
+        formatted_date = datetime.datetime.strptime(click_date[:10], '%Y-%m-%d')
+        final_date = formatted_date.strftime('%m-%Y')
+        df = df[df['date'].str.contains(final_date)]
+        df = df.sort_values(by=['count'], ascending=False)
+        complete = []
+        for i in range(len(df)):
+            current = df.iloc[i]
+            link = html.A(current['id'])
+            link.href = 'https://uitspraken.rechtspraak.nl/inziendocument?id=' + current['id'].replace('-', ':')
+            link.target = '_blank'
+            curr = html.Div([
+                    html.P(str(current['count']) + " " + click_type + " mentions in " + current['date']),
+                    link
+                ])
+            curr_el = html.Li(curr)
+            complete.append(curr_el)
+        if len(complete) > 0:
+            relevant_cases = complete
+        else:
+            relevant_cases =  [html.Div([
+                    html.P("0 court cases found.")
+                ])]
+        return relevant_cases, True
     
 
 
-
+    
 if __name__ == '__main__':
     app.run_server(debug=True)
