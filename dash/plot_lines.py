@@ -11,7 +11,7 @@ def count_mentions(word_arr):
     counts = []
     uitspraakdata = []
     ids = []
-    for i in range(len(merged_df[:5100])):
+    for i in range(len(merged_df[:5000])):
         current = merged_df.iloc[i]
         current_date = current["Uitspraakdatum"]
         current_case_text = current['Case Text']

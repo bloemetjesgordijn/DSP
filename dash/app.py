@@ -5,6 +5,7 @@ import dash
 from dash import dcc, html, Input, Output, State
 import plotly.express as px
 import pandas as pd
+import numpy as np
 from dash.dependencies import Input, Output
 import plot_lines
 import time
@@ -13,9 +14,15 @@ from keywords import term_dict
 from sewage import amphetamine_series, methamphetamine_series, MDMA_series, cocaine_series
 import datetime
 import dash_bootstrap_components as dbc
+import plotly.figure_factory as ff
+import plotly.express as px
+
 
 # app = dash.Dash(__name__)
 app = dash.Dash(external_stylesheets=[dbc.themes.FLATLY])
+pio.templates.default = "plotly_white"
+app.title = 'DSP F6'
+
 amphetamine_df = pd.DataFrame({'count': amphetamine_series.values, 'type': 'Amphetamine in sewage'}, index = amphetamine_series.index)
 methamphetamine_df = pd.DataFrame({'count': methamphetamine_series.values, 'type': 'Methamphetamine in sewage'}, index = methamphetamine_series.index)
 MDMA_df = pd.DataFrame({'count': MDMA_series.values, 'type': 'MDMA in sewage'}, index = MDMA_series.index)
@@ -39,6 +46,7 @@ def get_options():
 get_options()
 
 globals()["click_data"] = []
+globals()['graph_df'] = []
 
 app.layout = html.Div(children=[
     html.H1(children='Data Systems Project group F6',
@@ -55,7 +63,10 @@ app.layout = html.Div(children=[
     dcc.Loading(
             id="loading-1",
             type="default",
-            children=html.Div(id="loading-output")
+            children=[html.Div(id="loading-output"),
+            html.Div(id="loading-output2"),
+            html.Div(id="loading-output3"),
+            html.Div(id="loading-output4")]
         ),
     html.Div(children='''
         Rolling mean slider
@@ -82,6 +93,7 @@ app.layout = html.Div(children=[
     ],
     value='mentions',
     inputStyle={"margin-left": "10px"}),
+     html.Br(),
     html.Div(children='''
         Court mentions
     '''),
@@ -92,6 +104,7 @@ app.layout = html.Div(children=[
         labelStyle={'display': 'inline-block'},
         inputStyle={"margin-left": "10px"}
     ),
+    html.Br(),
     html.Div(children='''
         Sewage data
     '''),
@@ -104,6 +117,7 @@ app.layout = html.Div(children=[
         value=[],
         inputStyle={"margin-left": "10px"}
     ),
+    html.Br(),
     html.Div(children='''
         Extra terms:
     '''),
@@ -117,6 +131,17 @@ app.layout = html.Div(children=[
         inputStyle={"margin-left": "10px"}
     ),
     html.Button('Delete extra terms', id='delete-extra-items', n_clicks_timestamp = 0),
+    html.Br(),
+    html.Br(),    
+    html.Button('Correlation Matrix', id='corr_btn', n_clicks = 0),
+    dbc.Collapse(
+            dbc.Card(dbc.CardBody(dcc.Graph(
+        id='output_corr'
+    ))),
+            id="collapse",
+            is_open=False,
+        ),
+    html.Br(),
     html.Div(children='''
         Find cases by mentions:
     '''),
@@ -151,6 +176,8 @@ app.layout = html.Div(children=[
 
 @app.callback(
     Output('sliding-graph', 'figure'),
+    Output("loading-output", "children"),
+    Output('corr_btn', 'n_clicks'),
     Input('rolling-mean-slider', 'value'),
     Input('line-selector', 'value'),
     Input('sewage-selector', 'value'),
@@ -201,19 +228,14 @@ def update_figure(rolling_mean_value, line_selector, sewage_selector, mentions_c
 
 
     df['date'] = df.index
+    globals()['graph_df'] = df
     fig = px.line(df, x="date", y="count", title='Monthly mentions', color='type')
     fig.update_layout(transition_duration=500)
-
-    return fig
-
-# @app.callback(Output("loading-output", "children"), Input("line-selector", "value"))
-# def input_triggers_spinner(value):
-#     time.sleep(1)
-#     return value
+    return fig, line_selector, 0
 
 @app.callback(
     [Output("extra-terms-selector", "options"),
-    Output("extra-terms-selector", "value")],
+    Output("extra-terms-selector", "value"),],
     [Input("input", "value"),
     Input("delete-extra-items", "n_clicks_timestamp"),
     Input("extra-terms-selector", "value")]
@@ -225,33 +247,37 @@ def update_output(input, n_clicks_timestamp, value):
     new_list = []
     clean_terms_list = []
 
+    
+
     if input is not None:
         extra_terms.append(input)
+        globals()['extra_terms'] = extra_terms
     if curr_time == click_time:
-        print("Delete list")
         new_list = []
         clean_terms_list = []
-        # extra_terms = []
-        return new_list, []
+        globals()['extra_terms'] = []
+        return [], []
     else:
-        for i in extra_terms:
+        for i in globals()['extra_terms']:
             if i not in clean_terms_list:
                 clean_terms_list.append(i)
         for term in clean_terms_list:
-            curr = {'label': term, 'value': term}
-            new_list.append(curr)
+            if term != "":
+                curr = {'label': term, 'value': term}
+                new_list.append(curr)
+        print(new_list)
         return new_list, value
     # return new_list, new_list
 
 @app.callback(
     Output("specific-case-output", "children"),
+    Output("loading-output2", "children"),
     Input("specific-case-input", "value"),
     Input("specific-case-amount-input", "value")
 )
 def update_case_check(input, amount):
     cases = input
     complete = []
-    print(input , amount)
     if len(input) > 0:
         result = plot_lines.get_case_that_exceed_count([input], amount)
         counts = result[0]
@@ -271,11 +297,12 @@ def update_case_check(input, amount):
             relevant_cases = complete
         else:
             relevant_cases = []
-    return relevant_cases
+    return relevant_cases, []
 
 @app.callback(
     [Output("specific-click-output", "children"),
-    Output("modal", "is_open")],
+    Output("modal", "is_open"),
+    Output("loading-output3", "children")],
     [Input('sliding-graph', 'clickData'),
     Input('sliding-graph', 'figure'),
     Input("close", "n_clicks"),
@@ -287,7 +314,7 @@ def graph_click(click_data, figure, n1, is_open):
         update = True
         globals()["click_data"] = click_data
     if is_open == True:
-        return [], False
+        return [], False, []
     elif update:
         fig_data = figure.get('data')
         points = click_data.get('points')[0]
@@ -316,11 +343,18 @@ def graph_click(click_data, figure, n1, is_open):
             link = html.A(current['id'])
             link.href = 'https://uitspraken.rechtspraak.nl/inziendocument?id=' + current['id'].replace('-', ':')
             link.target = '_blank'
-            curr = html.Div([
+            if globals()["mentions_case_selector"] == 'mentions':
+                curr = html.Div([
                     html.P(str(current['count']) + " " + click_type + " mentions in " + current['date']),
                     link
                 ])
-            curr_el = html.Li(curr)
+                
+            elif globals()["mentions_case_selector"] == 'cases':
+                curr = html.Div([
+                        html.P(current['date']),
+                        link
+                    ])
+                curr_el = html.Li(curr)
             complete.append(curr_el)
         if len(complete) > 0:
             relevant_cases = complete
@@ -328,9 +362,27 @@ def graph_click(click_data, figure, n1, is_open):
             relevant_cases =  [html.Div([
                     html.P("0 court cases found.")
                 ])]
-        return relevant_cases, True
+        return relevant_cases, True, []
     
-
+@app.callback(
+    [Output('output_corr', 'figure'),
+    Output('collapse', 'is_open')],
+    [Input('corr_btn', 'n_clicks'),
+    State('collapse', 'is_open')]
+)
+def update_output(n_clicks, is_open):
+    corr = []
+    df = globals()['graph_df']
+    terms = df['type'].unique()
+    if len(terms) > 1:
+        relevant_df = pd.DataFrame()
+        for i in terms:
+            relevant_df[i] = df[df['type'] == i]['count']
+        corr = relevant_df.corr()
+    if (is_open == False) and (n_clicks != 0):
+        return px.imshow(corr, text_auto = True), True
+    else:
+        return px.imshow(corr, text_auto = True), False
 
     
 if __name__ == '__main__':
