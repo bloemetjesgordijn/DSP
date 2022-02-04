@@ -2,19 +2,19 @@ DRUGS_AND_PRECURSORS = {
     "safrol": ['safrol', 'isosafrol', 'safrool', 'isosafrool'],
     "piperonal": ['piperonal', 'piperonalglycidaat'],
     "PMK": ['PMK','piperonylmethylketon'],
-    "BMK": ['BMK', 'BenzylMethylKeton'],
+    "BMK": ['BMK', 'BenzylMethylKeton', "MAPA", "APAA", "APAAN", "benzaldehyde", "benzylcyanide", "P2NP"],
     "apaan": ['apaan','Alpha-Phenylacetoacetonitrile', 'AlphaPhenylacetoacetonitrile'],
     "GBL": ['GBL', 'Gamma-butyrolacton'],
     "MDP2P": ['MDP2P'],
     "efedrine": ['Efedrine', 'Ephedrine'],
     "ergotamine": ['Ergotamine'],
     "lyserginezuur": ['Lyserginezuur'],
-    "methamphetamine": ['Methamfetamine', 'Methamphetamine'],
+    "methamphetamine": ['Methamfetamine', 'Methamphetamine', 'Meth'],
     "MDMA": ['MDMA', 'Methylenedioxymethamphetamine'],
     "amphetamine": ['Amfetamine', 'Amphetamine'],
     "cocaine": ['Cocaïne', 'Cocaine', 'Coke'],
     "XTC": ['XTC', 'ecstasy'],
-    "GHB": ['GHB', 'gamma-hydroxyboterzuur', '4-hydroxybutaanzuur']
+    "GHB": ['GHB', 'gamma-hydroxyboterzuur', '4-hydroxybutaanzuur'],
 }
 
 
@@ -331,3 +331,104 @@ LOCATIE_PROVINCIE_MAPPER = {
     "Oost-Nederland": ["Overijssel", "Gelderland"],
     "Zwolle": ["Overijssel"]
 }
+
+
+DRUGS_AND_PRECURSORS_TABLEAU = {
+    "MDMA": {
+        "altnames": ['MDMA', 'Methylenedioxymethamphetamine'],
+        "precursors": {
+                "Bromosafrole": {
+                    "altnames": ['bromosafrole', 'bromosafrool'],
+                    "preprecursors": {}
+                }, 
+                "PMK": {
+                    "altnames": ['PMK', 'piperonylmethylketon', 'MDP2P', 'MDP-2-P'],
+                    "preprecursors": {
+                        "safrol": ['safrol', 'isosafrol', 'safrool', 'isosafrool', 'safrole', 'sassafras olie', 'safrole olie'],
+                        "piperonal": ['piperonal', 'piperonalglycidaat', 'heliotropine', 'heliotropin'],
+                        "PMK glycide zuur": ["pmk glycide zuur"],
+                        "P2NP": ["fenylnitropropaan", "P2NP"],
+                        "Helional": ["helional"]
+                    }
+                },
+                "N-t-BOC-MDMA": {
+                    "altnames": ["N-t-BOC-MDMA", "N t BOC MDMA", "N t BOC MDMA"],
+                    "preprecursors": {}
+                }
+        }
+    },
+    "Methamphetamine": {
+        "altnames": ['Methamfetamine', 'Methamphetamine', 'Meth'],
+        "precursors": {
+            "Pseudoephedrine": {
+                    "altnames": ["pseudoephedrine", "pseudoefedrine"],
+                    "preprecursors": {}
+            },
+            "Ephedrine": {
+                    "altnames": ['ephedrine', 'efedrine'],
+                    "preprecursors": {
+                        "Fenylacetolcarbinol": ["Phenylacetylcarbinol", "fenylacetolcarbinol" , "LPAC", "L-PAC", "PAC"],
+                    }
+            },
+            "Chloropseudoephedrine": {
+                    "altnames": ["chloropseudoephedrine", "chloropseudoefedrine"],
+                    "preprecursors": {}
+            },
+            "Chloroephedrine": {
+                    "altnames": ["chloroephedrine", "chloroefedrine"],
+                    "preprecursors": {}
+            },
+             "BMK": {
+                "altnames": ["BMK", 'benzylmethylketon', "P2P", "P-2-P"],
+                "preprecursors": {
+                    "MAPA": ["MAPA"],
+                    "APAA": ["APAA"],
+                    "BMK glycide zuur": ["BMK glycide zuur"],
+                    "Benzaldehyde": ["Benzaldehyde"],
+                    "Fenylnitropropaan": ["Fenylnitropropaan"],
+                    "APAAN": ["APAAN"],
+                    "Benzylcyanide": ["Benzylcyanide"],
+                    "Fenylazijnzuur": ["Fenylazijnzuur", "PAA", "phenylacetic acid"]
+                }
+            },           
+            "N-t-BOC-methamphetamine": {
+                "altnames": ["N-t-BOC-methamphetamine", "N-t-BOC-meth", "N t BOC meth"],
+                "preprecursors": {}
+            }
+        },
+    },
+    "Amphetamine": {
+        "altnames": ['Amfetamine', 'Amphetamine'],
+        "precursors": {
+            "BMK": {
+                "altnames": ["BMK", 'benzylmethylketon', "P2P", "P-2-P"],
+                "preprecursors": {
+                    "MAPA": ["MAPA"],
+                    "APAA": ["APAA"],
+                    "BMK glycide zuur": ["BMK glycide zuur"],
+                    "Benzaldehyde": ["Benzaldehyde"],
+                    "Fenylnitropropaan": ["Fenylnitropropaan"],
+                    "APAAN": ["APAAN"],
+                    "Benzylcyanide": ["Benzylcyanide"],
+                    "Fenylazijnzuur": ["Fenylazijnzuur", "PAA", "phenylacetic acid"]
+                }                
+            } 
+        }
+    }
+}
+
+
+# Index(['date', 'case_id', 'mdma_count', 'bromosafrole_count', 'pmk_count',
+#        'safrol_count', 'piperonal_count', 'pmk glycide zuur_count',
+#        'p2np_count', 'helional_count', 'n-t-boc-mdma_count',
+#        'methamphetamine_count', 'pseudoephedrine_count', 'ephedrine_count',
+#        'fenylacetolcarbinol_count', 'chloropseudoephedrine_count',
+#        'chloroephedrine_count', 'bmk_count_x', 'mapa_count_x', 'apaa_count_x',
+#        'bmk glycide zuur_count_x', 'benzaldehyde_count_x',
+#        'fenylnitropropaan_count_x', 'apaan_count_x', 'benzylcyanide_count_x',
+#        'fenylazijnzuur_count_x', 'n-t-boc-methamphetamine_count',
+#        'amphetamine_count', 'bmk_count_y', 'mapa_count_y', 'apaa_count_y',
+#        'bmk glycide zuur_count_y', 'benzaldehyde_count_y',
+#        'fenylnitropropaan_count_y', 'apaan_count_y', 'benzylcyanide_count_y',
+#        'fenylazijnzuur_count_y'],
+#       dtype='object')
