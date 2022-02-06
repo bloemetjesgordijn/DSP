@@ -2,73 +2,224 @@ DRUGS_AND_PRECURSORS = {
     "safrol": ['safrol', 'isosafrol', 'safrool', 'isosafrool'],
     "piperonal": ['piperonal', 'piperonalglycidaat'],
     "PMK": ['PMK','piperonylmethylketon'],
-    "BMK": ['BMK', 'BenzylMethylKeton'],
+    "BMK": ['BMK', 'BenzylMethylKeton', "MAPA", "APAA", "APAAN", "benzaldehyde", "benzylcyanide", "P2NP"],
     "apaan": ['apaan','Alpha-Phenylacetoacetonitrile', 'AlphaPhenylacetoacetonitrile'],
     "GBL": ['GBL', 'Gamma-butyrolacton'],
     "MDP2P": ['MDP2P'],
     "efedrine": ['Efedrine', 'Ephedrine'],
     "ergotamine": ['Ergotamine'],
     "lyserginezuur": ['Lyserginezuur'],
-    "methamphetamine": ['Methamfetamine', 'Methamphetamine'],
+    "methamphetamine": ['Methamfetamine', 'Methamphetamine', 'Meth'],
     "MDMA": ['MDMA', 'Methylenedioxymethamphetamine'],
     "amphetamine": ['Amfetamine', 'Amphetamine'],
     "cocaine": ['Cocaïne', 'Cocaine', 'Coke'],
     "XTC": ['XTC', 'ecstasy'],
-    "GHB": ['GHB', 'gamma-hydroxyboterzuur', '4-hydroxybutaanzuur']
+    "GHB": ['GHB', 'gamma-hydroxyboterzuur', '4-hydroxybutaanzuur'],
 }
 
 
-a = '''CREATE TABLE IF NOT EXISTS public.court_verdicts (
-        case_id varchar(100) NOT NULL,
-        case_text text,
-        PRIMARY KEY (case_id)
-    )'''
-
-b = '''CREATE TABLE IF NOT EXISTS public.case_data (
-        case_id varchar(100) NOT NULL,
-        titel varchar(255),
-        court_datum date,
-        uitspraak_type varchar(30),
-        gerechtelijk_product_type varchar(30),
-        procedure_soort varchar(100),
-        rechtsgebieden varchar(100),
-        PRIMARY KEY (case_id)
-    )'''
-
-c = '''CREATE TABLE IF NOT EXISTS public.sewer (
-        year integer,
-        cocaine numeric,
-        amphetamine numeric,
-        MDMA numeric,
-        methamphetamine numeric
-    )'''
-
-
-d = '''CREATE TABLE IF NOT EXISTS public.drug_prevalence_count (
-        case_id varchar(100) NOT NULL,
-        court_datum date, 
-        safrol integer,
-        piperonal integer,
-        PMK integer,
-        BMK integer,
-        apaan integer,
-        GBL integer, 
-        MDP2P integer,
-        efedrine integer, 
-        ergotamine integer,
-        lyserginezuur integer,
-        methamphetamine integer,
-        MDMA integer,
-        amphetamine integer,
-        cocaine integer,
-        XTC integer,
-        GHB integer,
-        PRIMARY KEY (case_id)
-    )'''
-
-queries = [a, b, c, d]
-
-
+GERECHTSCODE_LOCATIE_MAPPING = {
+    'AGAMS': 'Amsterdam',
+    'AGARN': 'Arnhem',
+    'AGGRO': 'Groningen',
+    'AGHAA': 'Haarlem',
+    'AGROE': 'Roermond',
+    'AGROT': 'Rotterdam',
+    'AGSGR': "'s-Gravenhage",
+    'AGSHE': "'s-Hertogenbosch",
+    'AGUTR': 'Utrecht',
+    'AGZWO': 'Zwolle',
+    'CBB': 'Den Haag',
+    'CRVB': 'Beroep',
+    'CVBSTUF': 'Studiefinanciering',
+    'DETARCO': 'Tariefcommissie',
+    'GHAMS': 'Amsterdam',
+    'GHARL': 'Arnhem-Leeuwarden',
+    'GHARN': 'Arnhem',
+    'GHDHA': 'Den Haag',
+    'GHLEE': 'Leeuwarden',
+    'GHSGR': "'s-Gravenhage",
+    'GHSHE': "'s-Hertogenbosch",
+    'HR': 'Hoge Raad',
+    'KTGAAR': 'Alphen aan de Rijn',
+    'KTGALK': 'Alkmaar',
+    'KTGALM': 'Almelo',
+    'KTGAMF': 'Amersfoort',
+    'KTGAMS': 'Amsterdam',
+    'KTGAPD': 'Apeldoorn',
+    'KTGARN': 'Arnhem',
+    'KTGASS': 'Assen',
+    'KTGBEE': 'Beetsterzwaag',
+    'KTGBOX': 'Boxmeer',
+    'KTGBOZ': 'Zoom',
+    'KTGBRE': 'Breda',
+    'KTGBRI': 'Brielle',
+    'KTGDEL': 'Delft',
+    'KTGDEV': 'Deventer',
+    'KTGDHD': 'Helder',
+    'KTGDOR': 'Dordrecht',
+    'KTGEIN': 'Eindhoven',
+    'KTGEMM': 'Emmen',
+    'KTGENS': 'Enschede',
+    'KTGGNL': 'Groenlo',
+    'KTGGOU': 'Gouda',
+    'KTGGRC': 'Gorinchem',
+    'KTGGRO': 'Groningen',
+    'KTGHAA': 'Haarlem',
+    'KTGHAR': 'Harderwijk',
+    'KTGHFD': 'Hoofddorp',
+    'KTGHIL': 'Hilversum',
+    'KTGHMD': 'Helmond',
+    'KTGHRL': 'Heerlen',
+    'KTGHRN': 'Hoorn',
+    'KTGHRV': 'Heerenveen',
+    'KTGLDN': 'Leiden',
+    'KTGLEE': 'Leeuwarden',
+    'KTGLLY': 'Lelystad',
+    'KTGMAA': 'Maastricht',
+    'KTGMEP': 'Meppel',
+    'KTGMID': 'Middelburg',
+    'KTGNMG': 'Nijmegen',
+    'KTGOBL': 'Oud-Beijerland',
+    'KTGOOS': 'Oostburg',
+    'KTGPAR': 'Parimaribo',
+    'KTGROE': 'Roermond',
+    'KTGROT': 'Rotterdam',
+    'KTGSCH': 'Schiedam',
+    'KTGSGR': "'s-Gravenhage",
+    'KTGSHE': "'s-Hertogenbosch",
+    'KTGSIT': 'Sittard',
+    'KTGSNK': 'Sneek',
+    'KTGSOM': 'Sommelsdijk',
+    'KTGSTW': 'Steenwijk',
+    'KTGTIE': 'Tiel',
+    'KTGTIL': 'Tilburg',
+    'KTGTRB': 'Terborg',
+    'KTGTRN': 'Terneuzen',
+    'KTGUTR': 'Utrecht',
+    'KTGVEE': 'Veendam',
+    'KTGVEN': 'Venlo',
+    'KTGWAG': 'Wageningen',
+    'KTGWIN': 'Winschoten',
+    'KTGZAA': 'Zaandam',
+    'KTGZEV': 'Zevenbergen',
+    'KTGZIE': 'Zierikzee',
+    'KTGZUI': 'Zuidbroek',
+    'KTGZUT': 'Zutphen',
+    'KTGZWO': 'Zwolle',
+    'OCHM': 'Sint Maarten',
+    'OGAACMB': 'Saba',
+    'OGANA': 'Antillen',
+    'OGEAA': 'Aruba',
+    'OGEAB': 'Bonaire',
+    'OGEABES': 'Saba',
+    'OGEAC': 'Curacao',
+    'OGEAM': 'Maarten',
+    'OGEANA': 'Antillen',
+    'OGHACMB': 'Saba',
+    'OGHNAA': 'Aruba',
+    'OHJNA': 'Antillen',
+    'ORBAACM': 'Saba',
+    'ORBANAA': 'Aruba',
+    'ORBBACM': 'Saba',
+    'ORBBNAA': 'Aruba',
+    'PHR': 'Parket bij de Hoge Raad',
+    'RBALK': 'Alkmaar',
+    'RBALM': 'Almelo',
+    'RBAMS': 'Amsterdam',
+    'RBARN': 'Arnhem',
+    'RBASS': 'Assen',
+    'RBBRE': 'Breda',
+    'RBDHA': 'Haag',
+    'RBDOR': 'Dordrecht',
+    'RBGEL': 'Gelderland',
+    'RBGRO': 'Groningen',
+    'RBHAA': 'Haarlem',
+    'RBLEE': 'Leeuwarden',
+    'RBLIM': 'Limburg',
+    'RBMAA': 'Maastricht',
+    'RBMID': 'Middelburg',
+    'RBMNE': 'Midden-Nederland',
+    'RBNHO': 'Noord-Holland',
+    'RBNNE': 'Noord-Nederland',
+    'RBOBR': 'Oost-Brabant',
+    'RBONE': 'Oost-Nederland',
+    'RBOVE': 'Overijssel',
+    'RBROE': 'Roermond',
+    'RBROT': 'Rotterdam',
+    'RBSGR': "'s-Gravenhage",
+    'RBSHE': "'s-Hertogenbosch",
+    'RBUTR': 'Utrecht',
+    'RBZLY': 'Zwolle-Lelystad',
+    'RBZUT': 'Zutphen',
+    'RBZWB': 'Zeeland-West-Brabant',
+    'RBZWO': 'Zwolle',
+    'RVBALK': 'Alkmaar',
+    'RVBAMS': 'Amsterdam',
+    'RVBARN': 'Arnhem',
+    'RVBBRE': 'Breda',
+    'RVBGRO': 'Groningen',
+    'RVBHAA': 'Haarlem',
+    'RVBLDN': 'Leiden',
+    'RVBLEE': 'Leeuwarden',
+    'RVBMID': 'Middelburg',
+    'RVBROE': 'Roermond',
+    'RVBROT': 'Rotterdam',
+    'RVBSGR': "'s-Gravenhage",
+    'RVBSHE': "'s-Hertogenbosch",
+    'RVBTIL': 'Tilburg',
+    'RVBUTR': 'Utrecht',
+    'RVBZWO': 'Zwolle',
+    'RVS': 'Raad van State',
+    'TACAKN': 'NIVRA',
+    'TADRAMS': 'Amsterdam',
+    'TADRARL': 'Arnhem-Leeuwarden',
+    'TADRARN': 'Arnhem',
+    'TADRLEE': 'Leeuwarden',
+    'TADRSGR': "'s-Gravenhage",
+    'TADRSHE': "'s-Hertogenbosch",
+    'TAHVD': 'Hof van Discipline',
+    'TAKTPA': 'Akkerbouw',
+    'TBBBKD': 'Bloembollenkeuringsdienst',
+    'TBPSKAL': 'Skal-Tuchtgerecht',
+    'TDIVBC': 'Beroepscollege',
+    'TDIVTC': 'Tuchtcollege',
+    'TGDKG': 'Gerechtsdeurwaarders',
+    'TGFKCB': 'Kwaliteits-Controle-Bureau',
+    'TGZCTG': 'Gezondheidszorg',
+    'TGZRAMS': 'Amsterdam',
+    'TGZREIN': 'Eindhoven',
+    'TGZRGRO': 'Groningen',
+    'TGZRSGR': "'s-Gravenhage",
+    'TGZRZWO': 'Zwolle',
+    'TNOKALK': 'Alkmaar',
+    'TNOKALM': 'Almelo',
+    'TNOKAMS': 'Amsterdam',
+    'TNOKARN': 'Arnhem',
+    'TNOKASS': 'Assen',
+    'TNOKBRE': 'Breda',
+    'TNOKDOR': 'Dordrecht',
+    'TNOKGRO': 'Groningen',
+    'TNOKHAA': 'Haarlem',
+    'TNOKLEE': 'Leeuwarden',
+    'TNOKMAA': 'Maastricht',
+    'TNOKMID': 'Middelburg',
+    'TNOKROE': 'Roermond',
+    'TNOKROT': 'Rotterdam',
+    'TNOKSGR': "'s-Gravenhage",
+    'TNOKSHE': "'s-Hertogenbosch",
+    'TNOKUTR': 'Utrecht',
+    'TNOKZLY': 'Zwolle-Lelystad',
+    'TNOKZUT': 'Zutphen',
+    'TNORAMS': 'Amsterdam',
+    'TNORARL': 'Arnhem-Leeuwarden',
+    'TNORDHA': 'Den Haag',
+    'TNORSHE': "'s-Hertogenbosch",
+    'TPETPVE': 'Eieren',
+    'TSCTS': 'Scheepvaart',
+    'TVSTPV': 'Vis',
+    'TVVTPVV': 'Vlees'
+ }
 
 
 
@@ -275,3 +426,160 @@ GERECHTSCODE_INSTANTIE_MAPPING = {
     "TVSTPV": "Tuchtgerecht Productschap Vis",
     "TVVTPVV": "Tuchtgerecht Productschap Vee en Vlees"
 }
+
+
+EXTRA_MAPPER = {
+    "Rechtbank Den Haag": "Den Haag",
+    "Gerechtshof Den Haag": "Den Haag",
+    "Hoge Raad": "Den Haag",
+    "Parket bij de Hoge Raad": "Den Haag",
+    "Centrale Raad van Beroep": "Utrecht",
+    "Raad van State": "Den Haag",
+    "College van Beroep voor het bedrijfsleven": "Den Haag",
+    "Gemeenschappelijk Hof van Justitie van Aruba, Curacao, Sint Maarten en van Bonaire, Sint Eustatius en Saba": "Nederlandse Antillen",
+    "Gerecht in eerste aanleg van Curacao": "Nederlandse Antillen",
+    "Gerecht in eerste aanleg van Bonaire, Sint Eustatius en Saba": "Nederlandse Antillen",
+    "Gerecht in Eerste Aanleg van Aruba": "Nederlandse Antillen",
+    "Gerecht in eerste aanleg van Sint Maarten": "Nederlandse Antillen",
+    "Gemeenschappelijk Hof van Justitie van de Nederlandse Antillen en Aruba": "Nederlandse Antillen",
+    "Gerecht in Ambtenarenzaken van Aruba, Curacao, Sint Maarten en van Bonaire, Sint Eustatius en Saba": "Nederlandse Antillen",
+    "Raad van Beroep in Ambtenarenzaken (Nederlandse Antillen en Aruba)": "Nederlandse Antillen",
+    "Raad van Beroep in Ambtenarenzaken van Aruba, Curacao, Sint Maarten en van Bonaire, Sint Eustatius en Saba": "Nederlandse Antillen",
+    "Gerecht in Eerste Aanleg van de Nederlandse Antillen": "Nederlandse Antillen",
+}
+
+LOCATIE_PROVINCIE_MAPPER = {
+    "Noord-Nederland": ["Friesland", "Groningen"],
+    "Zutphen": ["Gelderland"],
+    "Zeeland-West-Brabant": ["Zeeland, Noord-Brabant"],
+    "Amsterdam": ["Noord-Holland"],
+    "Midden-Nederland": ["Utrecht", "Flevoland"],
+    "Rotterdam": ["Zuid-Holland"],
+    "Nederlandse Antillen": [],
+    "Den Haag": ["Zuid-Holland"],
+    "Zwolle-Lelystad": ["Overijssel", "Flevoland"],
+    "Utrecht": ["Utrecht"],
+    "Gelderland": ["Gelderland"],
+    "Arnhem-Leeuwarden": ["Gelderland", "Overijssel", "Friesland"],
+    "Leeuwarden": ["Friesland"],
+    "Middelburg": ["Zeeland"],
+    "Overijssel": ["Overijssel"],
+    "Noord-Holland": ["Noord-Holland"],
+    "Breda": ["Noord-Brabant"],
+    "Almelo": ["Overijssel"],
+    "'s-Gravenhage": ["Zuid-Holland"],
+    "Maastricht": ["Limburg"],
+    "'s-Hertogenbosch": ["Noord-Holland"],
+    "Oost-Brabant": ["Noord-Brabant"],
+    "Haarlem": ["Noord-Holland"],
+    "Alkmaar": ["Noord-Holland"],
+    "Assen": ["Drenthe"],
+    "Limburg": ["Limburg"],
+    "Roermond": ["Limburg"],
+    "Groningen": ["Groningen"],
+    "Arnhem": ["Gelderland"],
+    "Dordrecht": ["Zuid-Holland"],
+    "Oost-Nederland": ["Overijssel", "Gelderland"],
+    "Zwolle": ["Overijssel"]
+}
+
+
+DRUGS_AND_PRECURSORS_TABLEAU = {
+    "MDMA": {
+        "altnames": ['MDMA', 'Methylenedioxymethamphetamine'],
+        "precursors": {
+                "Bromosafrole": {
+                    "altnames": ['bromosafrole', 'bromosafrool'],
+                    "preprecursors": {}
+                }, 
+                "PMK": {
+                    "altnames": ['PMK', 'piperonylmethylketon', 'MDP2P', 'MDP-2-P'],
+                    "preprecursors": {
+                        "safrol": ['safrol', 'isosafrol', 'safrool', 'isosafrool', 'safrole', 'sassafras olie', 'safrole olie'],
+                        "piperonal": ['piperonal', 'piperonalglycidaat', 'heliotropine', 'heliotropin'],
+                        "PMK glycide zuur": ["pmk glycide zuur"],
+                        "P2NP": ["fenylnitropropaan", "P2NP"],
+                        "Helional": ["helional"]
+                    }
+                },
+                "N-t-BOC-MDMA": {
+                    "altnames": ["N-t-BOC-MDMA", "N t BOC MDMA", "N t BOC MDMA"],
+                    "preprecursors": {}
+                }
+        }
+    },
+    "Methamphetamine": {
+        "altnames": ['Methamfetamine', 'Methamphetamine', 'Meth'],
+        "precursors": {
+            "Pseudoephedrine": {
+                    "altnames": ["pseudoephedrine", "pseudoefedrine"],
+                    "preprecursors": {}
+            },
+            "Ephedrine": {
+                    "altnames": ['ephedrine', 'efedrine'],
+                    "preprecursors": {
+                        "Fenylacetolcarbinol": ["Phenylacetylcarbinol", "fenylacetolcarbinol" , "LPAC", "L-PAC", "PAC"],
+                    }
+            },
+            "Chloropseudoephedrine": {
+                    "altnames": ["chloropseudoephedrine", "chloropseudoefedrine"],
+                    "preprecursors": {}
+            },
+            "Chloroephedrine": {
+                    "altnames": ["chloroephedrine", "chloroefedrine"],
+                    "preprecursors": {}
+            },
+             "BMK": {
+                "altnames": ["BMK", 'benzylmethylketon', "P2P", "P-2-P"],
+                "preprecursors": {
+                    "MAPA": ["MAPA"],
+                    "APAA": ["APAA"],
+                    "BMK glycide zuur": ["BMK glycide zuur"],
+                    "Benzaldehyde": ["Benzaldehyde"],
+                    "Fenylnitropropaan": ["Fenylnitropropaan"],
+                    "APAAN": ["APAAN"],
+                    "Benzylcyanide": ["Benzylcyanide"],
+                    "Fenylazijnzuur": ["Fenylazijnzuur", "PAA", "phenylacetic acid"]
+                }
+            },           
+            "N-t-BOC-methamphetamine": {
+                "altnames": ["N-t-BOC-methamphetamine", "N-t-BOC-meth", "N t BOC meth"],
+                "preprecursors": {}
+            }
+        },
+    },
+    "Amphetamine": {
+        "altnames": ['Amfetamine', 'Amphetamine'],
+        "precursors": {
+            "BMK": {
+                "altnames": ["BMK", 'benzylmethylketon', "P2P", "P-2-P"],
+                "preprecursors": {
+                    "MAPA": ["MAPA"],
+                    "APAA": ["APAA"],
+                    "BMK glycide zuur": ["BMK glycide zuur"],
+                    "Benzaldehyde": ["Benzaldehyde"],
+                    "Fenylnitropropaan": ["Fenylnitropropaan"],
+                    "APAAN": ["APAAN"],
+                    "Benzylcyanide": ["Benzylcyanide"],
+                    "Fenylazijnzuur": ["Fenylazijnzuur", "PAA", "phenylacetic acid"]
+                }                
+            } 
+        }
+    }
+}
+
+
+# Index(['date', 'case_id', 'mdma_count', 'bromosafrole_count', 'pmk_count',
+#        'safrol_count', 'piperonal_count', 'pmk glycide zuur_count',
+#        'p2np_count', 'helional_count', 'n-t-boc-mdma_count',
+#        'methamphetamine_count', 'pseudoephedrine_count', 'ephedrine_count',
+#        'fenylacetolcarbinol_count', 'chloropseudoephedrine_count',
+#        'chloroephedrine_count', 'bmk_count_x', 'mapa_count_x', 'apaa_count_x',
+#        'bmk glycide zuur_count_x', 'benzaldehyde_count_x',
+#        'fenylnitropropaan_count_x', 'apaan_count_x', 'benzylcyanide_count_x',
+#        'fenylazijnzuur_count_x', 'n-t-boc-methamphetamine_count',
+#        'amphetamine_count', 'bmk_count_y', 'mapa_count_y', 'apaa_count_y',
+#        'bmk glycide zuur_count_y', 'benzaldehyde_count_y',
+#        'fenylnitropropaan_count_y', 'apaan_count_y', 'benzylcyanide_count_y',
+#        'fenylazijnzuur_count_y'],
+#       dtype='object')
