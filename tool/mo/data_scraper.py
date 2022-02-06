@@ -8,7 +8,7 @@ import pandas as pd
 from sqlalchemy import create_engine
 # from dotenv import load_dotenv
 
-from constants import DRUGS_AND_PRECURSORS
+from constants import *
 # load_dotenv()
 
 class DataScraper():
@@ -104,6 +104,84 @@ class DataScraper():
         self.cases_df = pd.concat([self.cases_df, df_row_2])
 
 
+    def preprocess_case_data(self):
+        self.cases_df.to_csv('t.csv', index=False, sep=';')
+        self.cases_df['gerechtscode'] = pd.DataFrame(self.cases_df['case_id'].str.split('-').tolist(), columns=['a', 'b', 'code', 'd', 'e'])['code']
+        self.cases_df['locatie'] = self.cases_df['gerechtscode'].map(GERECHTSCODE_LOCATIE_MAPPING)
+
+        self.cases_df['procedure_soorten'] = self.cases_df['procedure_soorten'].str.replace("Peek,", "")
+        self.cases_df['procedure_soorten'] = self.cases_df['procedure_soorten'].apply(lambda x: str(x)[1:-1].replace('"', "").split(','))
+        self.cases_df['rechtsgebieden'] = self.cases_df['rechtsgebieden'].apply(lambda x: str(x)[1:-1].replace('"', "").split(','))
+
+        self.cases_df = self.cases_df.explode('procedure_soorten').reset_index(drop=True)
+        self.cases_df = self.cases_df.explode('rechtsgebieden').reset_index(drop=True)
+
+
+    def process_search_words_tableau(self):
+        data = pd.DataFrame()
+        for drug, drug_ingredients in DRUGS_AND_PRECURSORS_TABLEAU.items():
+            print(drug)
+            df1 = self.count_mentions_tableau(drug_ingredients['altnames']).rename(columns={"count": f"{drug}_count".lower()})
+            try:
+                data = pd.merge(data, df1, on=['date', 'case_id'], how='left')
+            except:
+                data = df1
+            for precursor, precursor_info in drug_ingredients['precursors'].items():
+                print(precursor)
+                df2 = self.count_mentions_tableau(precursor_info['altnames']).rename(columns={"count": f"{precursor}_count".lower()})
+                data = pd.merge(data, df2, on=['date', 'case_id'], how='left')
+                for ppc, lvals in precursor_info['preprecursors'].items():
+                    df3 = self.count_mentions_tableau(lvals).rename(columns={"count": f"{ppc}_count".lower()})
+                    data = pd.merge(data, df3, on=['date', 'case_id'], how='left')
+
+        data.sort_values(by='date', ascending=False, inplace=True)
+        self.drug_prevalence_count_tableau = data
+
+        cols_to_drop = [col for col in self.drug_prevalence_count_tableau.columns if '_y' in col]
+        cols_rename = {col: col[:-2] for col in self.drug_prevalence_count_tableau.columns if '_x' in col}
+        self.drug_prevalence_count_tableau.drop(columns=cols_to_drop, inplace=True)
+        self.drug_prevalence_count_tableau.rename(columns=cols_rename, inplace=True)
+
+        df = self.drug_prevalence_count_tableau.sum(axis=0).reset_index()
+        df.rename(columns={'index': 'col', 0: 'sum'}, inplace=True)
+
+        cols_to_drop = df[df['sum'] == 0]['col'].tolist()
+        self.drug_prevalence_count_tableau.drop(columns=cols_to_drop, inplace=True)
+
+
+    def count_mentions_tableau(self, word_arr: list) -> pd.DataFrame:
+        date_and_count = []
+        for _, row in self.case_verdict_df.iterrows():
+            occurrences = 0
+            for word in word_arr:
+                occurrences += row['case_text'].lower().count(word.lower())
+            date_and_count.append([row['date'], row['case_id'], occurrences])
+
+        results = pd.DataFrame(date_and_count, columns=['date', 'case_id', 'count'])
+        return results
+
+    def push_verdicts_to_db_tableau(self):
+        engine = create_engine(self.connection_str)
+        conn = engine.connect()
+        self.case_verdict_df.to_sql('court_verdicts', con=conn, schema='public', if_exists='append', index=False, chunksize=500)
+        conn.close()
+
+    def push_case_data_to_db_tableau(self):
+        engine = create_engine(self.connection_str)
+        conn = engine.connect()
+        print(self.cases_df.head())
+        self.cases_df.to_sql('case_data_tableau', con=conn, schema='public', if_exists='append', index=False, chunksize=500)
+        conn.close()
+
+    def push_counts_to_db_tableau(self):
+        engine = create_engine(self.connection_str)
+        conn = engine.connect()
+        self.drug_prevalence_count_tableau.to_sql('drug_prevalence_count_tableau', con=conn, schema='public', if_exists='append', index=False, chunksize=500)
+        conn.close()
+    
+ 
+## --------------- NOT FOR TABLEAU ------------------- ##
+
     def process_search_words(self):
         data = pd.DataFrame()
         for key, search_words in DRUGS_AND_PRECURSORS.items():
@@ -150,43 +228,7 @@ class DataScraper():
         self.drug_word_count_df.to_sql('drug_prevalence_count', con=conn, schema='public', if_exists='append', index=False, chunksize=500)
         conn.close()
     
-    def push_verdicts_to_db(self):
-        engine = create_engine(self.connection_str)
-        conn = engine.connect()
-        df = pd.DataFrame()
-        court_text_files = os.listdir(self.save_text_location)
-        for case in court_text_files:
-            data = {'caseid': case[:-4]}
-            try:
-                with open(f"{self.save_text_location}/{case}", 'r') as f:
-                    data['casetext'] = f.read()
-            except Exception as e:
-                print(e)
-            df.append(data, ignore_index=True)
-        df.to_sql('court_verdicts', con=conn, schema='public', if_exists='append', index=False, chunksize=500)
-        conn.close()
-
-    def push_counts_to_db(self):
-        engine = create_engine(self.connection_str)
-        conn = engine.connect()
-        df = pd.read_csv("processed_data/drug_word_count.csv", sep=';')
-        df.to_sql('drug_prevalence_count', con=conn, schema='public', if_exists='append', index=False, chunksize=500)
-        conn.close()
-
-    def push_court_data(self):
-        use_cols = ['Titel', 'Uitspraakdatum', 'UitspraakdatumType', 'GerechtelijkProductType', 'Proceduresoorten', 'Rechtsgebieden', 'Case ID']
-        engine = create_engine(self.connection_str)
-        conn = engine.connect()
-        df = pd.read_csv("processed_data/courtdata.csv", sep=';', usecols=use_cols)
-        df['Proceduresoorten'] = df['Proceduresoorten'].apply(lambda x: x.strip('[]').replace("'", '').split(','))
-        df['Rechtsgebieden'] = df['Rechtsgebieden'].apply(lambda x: x.strip('[]').replace("'", '').split('; '))
-        df = df.explode(column='Proceduresoorten')
-        df = df.explode(column='Rechtsgebieden')
-        new_cols = ['titel', 'court_datum', 'uitspraak_type', 'gerechtelijk_product_type', 'procedure_soorten', 'rechtsgebieden', 'case_id']
-        mapper = {old: new for old, new in zip(use_cols, new_cols)}
-        df.rename(columns=mapper, inplace=True)
-        df.to_sql('case_data', con=conn, schema='public', if_exists='append', index=False, chunksize=500)
-        conn.close()
+## --------------- NOT FOR TABLEAU ------------------- ##
     
 
 # if __name__ == '__main__':
