@@ -8,7 +8,7 @@ term_dict = {"Safrol": ['safrol', 'isosafrol', 'safrool', 'isosafrool'],
 "Efedrine": ['Efedrine', 'Ephedrine'],
 "Ergotamine": ['Ergotamine'],
 "Lyserginezuur": ['Lyserginezuur'],
-
+"Fenylazijnzuur": ["phenylacetic acid", 'fenylazijnzuur', 'phenylacetate', 'PAA'],
 
 "Methamphetamine": ['Methamfetamine', 'Methamphetamine'],
 "MDMA": ['MDMA', 'Methylenedioxymethamphetamine'],

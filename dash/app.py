@@ -343,12 +343,13 @@ def graph_click(click_data, figure, n1, is_open):
             link = html.A(current['id'])
             link.href = 'https://uitspraken.rechtspraak.nl/inziendocument?id=' + current['id'].replace('-', ':')
             link.target = '_blank'
+            curr_el = []
             if globals()["mentions_case_selector"] == 'mentions':
                 curr = html.Div([
                     html.P(str(current['count']) + " " + click_type + " mentions in " + current['date']),
                     link
                 ])
-                
+                curr_el = html.Li(curr)
             elif globals()["mentions_case_selector"] == 'cases':
                 curr = html.Div([
                         html.P(current['date']),
@@ -386,4 +387,4 @@ def update_output(n_clicks, is_open):
 
     
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=False)
