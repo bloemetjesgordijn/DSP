@@ -46,6 +46,7 @@ def get_options():
 get_options()
 
 globals()["click_data"] = []
+globals()["corr_click_count"] = 0
 globals()['graph_df'] = []
 
 app.layout = html.Div(children=[
@@ -184,6 +185,11 @@ app.layout = html.Div(children=[
     Input('mentions_case_selector', 'value'),
     Input('extra-terms-selector', 'value'))
 def update_figure(rolling_mean_value, line_selector, sewage_selector, mentions_case_selector, extra_terms):
+    
+    
+    print(dir())
+
+    
     globals()["mentions_case_selector"] = mentions_case_selector
     df = pd.DataFrame(columns = ['count', 'type'])
     for var in line_selector:
@@ -235,7 +241,8 @@ def update_figure(rolling_mean_value, line_selector, sewage_selector, mentions_c
 
 @app.callback(
     [Output("extra-terms-selector", "options"),
-    Output("extra-terms-selector", "value"),],
+    Output("extra-terms-selector", "value"),
+    Output("input", "value")],
     [Input("input", "value"),
     Input("delete-extra-items", "n_clicks_timestamp"),
     Input("extra-terms-selector", "value")]
@@ -246,9 +253,6 @@ def update_output(input, n_clicks_timestamp, value):
     click_time = str(n_clicks_timestamp)[:-3]
     new_list = []
     clean_terms_list = []
-
-    
-
     if input is not None:
         extra_terms.append(input)
         globals()['extra_terms'] = extra_terms
@@ -256,7 +260,7 @@ def update_output(input, n_clicks_timestamp, value):
         new_list = []
         clean_terms_list = []
         globals()['extra_terms'] = []
-        return [], []
+        return [], [], ''
     else:
         for i in globals()['extra_terms']:
             if i not in clean_terms_list:
@@ -265,9 +269,8 @@ def update_output(input, n_clicks_timestamp, value):
             if term != "":
                 curr = {'label': term, 'value': term}
                 new_list.append(curr)
-        print(new_list)
-        return new_list, value
-    # return new_list, new_list
+        print(value)
+        return new_list, value, input
 
 @app.callback(
     Output("specific-case-output", "children"),
@@ -278,25 +281,27 @@ def update_output(input, n_clicks_timestamp, value):
 def update_case_check(input, amount):
     cases = input
     complete = []
-    if len(input) > 0:
-        result = plot_lines.get_case_that_exceed_count([input], amount)
-        counts = result[0]
-        cases = result[1]
-        dates = result[2]
-        for i in range(len(counts)):
-            link = html.A(cases[i])
-            link.href = 'https://uitspraken.rechtspraak.nl/inziendocument?id=' + cases[i]
-            link.target = '_blank'
-            curr = html.Div([
-                html.P(str(counts[i]) + " mentions in " + dates[i]),
-                link
-            ])
-            curr_el = html.Li(curr)
-            complete.append(curr_el)
-        if len(complete) > 0:
-            relevant_cases = complete
-        else:
-            relevant_cases = []
+    relevant_cases = []
+    if input is not None:
+        if len(input) > 0:
+            result = plot_lines.get_case_that_exceed_count([input], amount)
+            counts = result[0]
+            cases = result[1]
+            dates = result[2]
+            for i in range(len(counts)):
+                link = html.A(cases[i])
+                link.href = 'https://uitspraken.rechtspraak.nl/inziendocument?id=' + cases[i]
+                link.target = '_blank'
+                curr = html.Div([
+                    html.P(str(counts[i]) + " mentions in " + dates[i]),
+                    link
+                ])
+                curr_el = html.Li(curr)
+                complete.append(curr_el)
+            if len(complete) > 0:
+                relevant_cases = complete
+            else:
+                relevant_cases = []
     return relevant_cases, []
 
 @app.callback(
@@ -315,7 +320,7 @@ def graph_click(click_data, figure, n1, is_open):
         globals()["click_data"] = click_data
     if is_open == True:
         return [], False, []
-    elif update:
+    elif update and (click_data is not None):
         fig_data = figure.get('data')
         points = click_data.get('points')[0]
         x_axis = fig_data[0].get('x')
@@ -371,20 +376,24 @@ def graph_click(click_data, figure, n1, is_open):
     [Input('corr_btn', 'n_clicks'),
     State('collapse', 'is_open')]
 )
-def update_output(n_clicks, is_open):
-    corr = []
-    df = globals()['graph_df']
-    terms = df['type'].unique()
-    if len(terms) > 1:
-        relevant_df = pd.DataFrame()
-        for i in terms:
-            relevant_df[i] = df[df['type'] == i]['count']
-        corr = relevant_df.corr()
-    if (is_open == False) and (n_clicks != 0):
-        return px.imshow(corr, text_auto = True), True
+def correlation(n_clicks, is_open):
+    corr = []   
+    if globals()["corr_click_count"] < n_clicks:
+        df = globals()['graph_df']
+        terms = df['type'].unique()
+        if len(terms) > 1:
+            relevant_df = pd.DataFrame()
+            for i in terms:
+                relevant_df[i] = df[df['type'] == i]['count']
+            corr = relevant_df.corr()
+        if (is_open == False) and (n_clicks != 0):
+            return px.imshow(corr, text_auto = True), True
+        else:
+            return {}, False
+        globals()["corr_click_count"] = n_clicks
     else:
-        return px.imshow(corr, text_auto = True), False
+        return {}, False
 
     
 if __name__ == '__main__':
-    app.run_server(debug=False)
+    app.run_server(debug=True)
