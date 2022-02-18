@@ -16,6 +16,7 @@ import datetime
 import dash_bootstrap_components as dbc
 import plotly.figure_factory as ff
 import plotly.express as px
+import explanation
 
 
 # app = dash.Dash(__name__)
@@ -49,6 +50,7 @@ globals()["click_data"] = []
 globals()["corr_click_count"] = 0
 globals()['graph_df'] = []
 
+
 app.layout = html.Div(children=[
     html.H1(children='Data Systems Project group F6',
     style={'text-align': 'center'}),
@@ -57,7 +59,14 @@ app.layout = html.Div(children=[
         Uncovering modus operandi using court cases
     ''',
     style={'text-align': 'center'}),
-
+    html.Div(children='''Note: currently for development and speed purposes, court case limit = 5000
+    ''',
+    style={'text-align': 'center'}),
+    html.Br(),
+    html.Div(
+    dbc.Button("Help", id="openhelpmodal", n_clicks=0, color="primary",
+    style={'text-align': 'center'}),
+    className="d-grid gap-2 col-1 mx-auto"),
     dcc.Graph(
         id='sliding-graph'
     ),
@@ -76,7 +85,7 @@ app.layout = html.Div(children=[
         id='rolling-mean-slider',
         min=1,
         max=25,
-        value=1,
+        value=6,
         step=1,
         marks={
         1: '1',
@@ -101,7 +110,7 @@ app.layout = html.Div(children=[
     dcc.Checklist(
         id="line-selector",
         options=get_options(),
-        value=[],
+        value=['PMK', 'BMK', 'Amphetamine'],
         labelStyle={'display': 'inline-block'},
         inputStyle={"margin-left": "10px"}
     ),
@@ -115,7 +124,7 @@ app.layout = html.Div(children=[
         {'label': 'Methamphetamines', 'value': 'methamphetamines'},
         {'label': 'MDMA', 'value': 'MDMA'},
         {'label': 'Cocaine', 'value': 'cocaine'}],
-        value=[],
+        value=['amphetamines'],
         inputStyle={"margin-left": "10px"}
     ),
     html.Br(),
@@ -143,13 +152,13 @@ app.layout = html.Div(children=[
             is_open=False,
         ),
     html.Br(),
-    html.Div(children='''
+    html.Div(children=['''
         Find cases by mentions:
-    '''),
+    ''']),
     dcc.Input(
         id="specific-case-input", type="text", placeholder="", debounce=True),
         dcc.Input(
-        id="specific-case-amount-input", type="number", placeholder="20", debounce=True),
+        id="specific-case-amount-input", type="number", placeholder="0", debounce=True),
     html.Div(
         children=[
             html.Ul(id='specific-case-output', children=[html.Li(i) for i in relevant_cases])
@@ -173,6 +182,22 @@ app.layout = html.Div(children=[
             size="lg",
             is_open=False,
         ),
+    dbc.Modal(
+            [
+                dbc.ModalHeader(dbc.ModalTitle("Explanation")),
+                dbc.ModalBody(html.Div(
+        children = [html.Div(explanation.general),html.Div([html.Li(i) for i in explanation.elements])]
+    )),
+                dbc.ModalFooter(
+                    dbc.Button(
+                        "Close", id="closehelpmodal", className="ms-auto", n_clicks=0
+                    )
+                ),
+            ],
+            id="helpmodal",
+            size="lg",
+            is_open=False,
+        ),
 ])
 
 @app.callback(
@@ -186,9 +211,6 @@ app.layout = html.Div(children=[
     Input('extra-terms-selector', 'value'))
 def update_figure(rolling_mean_value, line_selector, sewage_selector, mentions_case_selector, extra_terms):
     
-    
-    print(dir())
-
     
     globals()["mentions_case_selector"] = mentions_case_selector
     df = pd.DataFrame(columns = ['count', 'type'])
@@ -394,6 +416,16 @@ def correlation(n_clicks, is_open):
     else:
         return {}, False
 
+@app.callback(
+    Output("helpmodal", "is_open"),
+    [Input("openhelpmodal", "n_clicks"), Input("closehelpmodal", "n_clicks")],
+    [State("helpmodal", "is_open")],
+)
+def toggle_modal(n1, n2, is_open):
+    if n1 or n2:
+        return not is_open
+    return is_open
     
+
 if __name__ == '__main__':
     app.run_server(debug=True)
